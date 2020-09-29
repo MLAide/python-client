@@ -6,11 +6,11 @@ import httpx
 from ..client import AuthenticatedClient, Client
 from ..errors import ApiResponseError
 from ..models.error import Error
-from ..models.experiment import Experiment
+from ..models.experiment import Run
 from ..models.experiments import Experiments
 
 
-async def list_experiments(*, client: Client, project_id: str,) -> Union[Experiment, Error]:
+async def list_experiments(*, client: Client, project_id: str,) -> Union[Run, Error]:
 
     """  """
     url = "{}/projects/{projectId}/experiments".format(client.base_url, projectId=project_id,)
@@ -21,14 +21,14 @@ async def list_experiments(*, client: Client, project_id: str,) -> Union[Experim
         response = await _client.get(url=url, headers=headers,)
 
     if response.status_code == 200:
-        return Experiment.from_dict(cast(Dict[str, Any], response.json()))
+        return Run.from_dict(cast(Dict[str, Any], response.json()))
     if response.status_code == 500:
         return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
         raise ApiResponseError(response=response)
 
 
-async def create_experiment(*, client: Client, project_id: str, json_body: Experiment,) -> Union[Experiments, Error]:
+async def create_experiment(*, client: Client, project_id: str, json_body: Run, ) -> Union[Experiments, Error]:
 
     """  """
     url = "{}/projects/{projectId}/experiments".format(client.base_url, projectId=project_id,)

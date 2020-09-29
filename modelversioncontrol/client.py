@@ -2,7 +2,7 @@ from __future__ import annotations
 import os
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
-from modelversioncontrol.active_experiment import ActiveExperiment
+from modelversioncontrol.active_run import ActiveRun
 from modelversioncontrol.api_client import AuthenticatedClient
 
 
@@ -14,7 +14,6 @@ class MvcOptions:
     def __init__(self, mvc_server_url: str = None, api_token: str = None):
         self.mvc_server_url = mvc_server_url
         self.api_token = api_token
-
 
     def to_dict(self) -> Dict[str, Any]:
         d = {
@@ -50,8 +49,8 @@ class MvcClient:
 
         self.__api_client = AuthenticatedClient(self.__options.mvc_server_url, self.__options.api_token)
 
-    def start_new_experiment(self, project_id: str, experiment_name: str = None) -> ActiveExperiment:
-        return ActiveExperiment(self.__api_client, project_id, experiment_name)
+    def start_new_run(self, project_id: str, experiment_key: str = None, run_name: str = None) -> ActiveRun:
+        return ActiveRun(self.__api_client, project_id, experiment_key, run_name)
 
     @staticmethod
     def __get_default_options() -> MvcOptions:

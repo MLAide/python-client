@@ -7,13 +7,13 @@ mvc_client = MvcClient(options)
 if __name__ == "__main__":
 
     try:
-        active_experiment = mvc_client.start_new_experiment(
-            project_id="01018351-0381-4220-86c5-c196b6259fc9",
-            experiment_name="elasticnet-2")
+        active_experiment = mvc_client.start_new_run(
+            project_id="2c4c58d9-3929-4452-a155-c88c292efa03",
+            run_name="elasticnet-2")
 
-        active_experiment.add_parameter("alpha", 0.6)
+        active_experiment.add_parameter("alpha", 0.7)
         active_experiment.add_parameter("l1_ratio", 0.5)
-        active_experiment.add_metric("rmse", 0.9)
+        active_experiment.add_metric("rmse", 0.8)
         active_experiment.add_metric("r2", 1)
         active_experiment.add_metric("mae", 0.98)
 

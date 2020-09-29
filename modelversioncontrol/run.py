@@ -4,18 +4,18 @@ from typing import Dict
 from dataclasses import dataclass
 
 
-class ExperimentStatus(Enum):
+class RunStatus(Enum):
     RUNNING = 1,
     FAILED = 2,
     COMPLETED = 3,
 
 
 @dataclass
-class Experiment(object):
+class Run(object):
     id: str
     name: str
     start_time: datetime
     end_time: datetime
-    status: ExperimentStatus
+    status: RunStatus
     metrics: Dict
     parameters: Dict[str, str]
