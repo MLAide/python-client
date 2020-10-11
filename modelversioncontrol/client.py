@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import os
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
-from modelversioncontrol.active_run import ActiveRun
-from modelversioncontrol.api_client import AuthenticatedClient
+
+from .active_run import ActiveRun
+from ._api_client import AuthenticatedClient
 
 
 @dataclass

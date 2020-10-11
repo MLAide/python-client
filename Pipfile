@@ -9,11 +9,15 @@ wheel = "*"
 freezegun = "*"
 setuptools = "*"
 openapi-python-client = "*"
+modelversioncontrol = {editable = true, path = "."}
+scikit-learn = "*"
+pandas = "*"
+numpy = "*"
 
 [packages]
-modelversioncontrol = {editable = true, path = "."}
 python-dateutil = "*"
 httpx = "==0.14.3"
+cloudpickle = "*"
 
 [requires]
 python_version = "3.8"

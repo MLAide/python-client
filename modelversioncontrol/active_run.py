@@ -1,12 +1,14 @@
 from modelversioncontrol.run import Run, RunStatus
-from modelversioncontrol.api_client import Client
-from modelversioncontrol.api_client.api import runs as runs_client
-from modelversioncontrol.api_client.models import \
+from . import _model_serializer
+from ._api_client import Client
+from ._api_client.api import runs as runs_client, artifacts as artifacts_client
+from ._api_client.models import \
     ExperimentRef as ExperimentRefDto, \
+    Model as ModelDto, \
     Run as RunDto, \
     Status as RunStatusDto, \
     Error as ErrorDto
-from modelversioncontrol.api_client.errors import ApiResponseError
+from ._api_client.errors import ApiResponseError
 from datetime import datetime
 from typing import Union
 
@@ -42,6 +44,8 @@ class ActiveRun(object):
             )
         except ApiResponseError as error:
             print(error)
+            print(error.response.status_code)
+            print(error.response.json())
             raise
 
         return Run(
@@ -67,7 +71,7 @@ class ActiveRun(object):
             name=self.__run.name
         )
 
-    def add_metric(self, key: str, value) -> Run:
+    def log_metric(self, key: str, value) -> Run:
         self.__run.metrics[key] = value
         runs_client.update_run_metrics(
             client=self.__api_client,
@@ -76,7 +80,7 @@ class ActiveRun(object):
             metrics={key: value})
         return self.__run
 
-    def add_parameter(self, key: str, value) -> Run:
+    def log_parameter(self, key: str, value) -> Run:
         self.__run.parameters[key] = value
         runs_client.update_run_parameters(
             client=self.__api_client,
@@ -84,6 +88,25 @@ class ActiveRun(object):
             run_id=self.__run.id,
             parameters={key: value})
         return self.__run
+
+    def log_model(self, model, model_name):
+        serialized_model = _model_serializer.serialize(model)
+
+        model = ModelDto(name=model_name, run_id=self.__run.id)
+        model = artifacts_client.create_model(client=self.__api_client, project_id=self.__project_id, json_body=model)
+
+        try:
+            artifacts_client.upload_artifact_binary(
+                client=self.__api_client,
+                project_id=self.__project_id,
+                model_name=model.name,
+                model_version=1, # model.version,
+                binary=serialized_model)
+        except ApiResponseError as error:
+            print(error)
+            print(error.response.status_code)
+            print(error.response.text)
+            raise
 
     def set_completed_status(self) -> Run:
         return self._set_status(RunStatus.COMPLETED)
