@@ -93,20 +93,11 @@ class ActiveRun(object):
         serialized_model = _model_serializer.serialize(model)
 
         model = ModelDto(name=model_name, run_id=self.__run.id)
-        model = artifacts_client.create_model(client=self.__api_client, project_id=self.__project_id, json_body=model)
-
-        try:
-            artifacts_client.upload_artifact_binary(
-                client=self.__api_client,
-                project_id=self.__project_id,
-                model_name=model.name,
-                model_version=1, # model.version,
-                binary=serialized_model)
-        except ApiResponseError as error:
-            print(error)
-            print(error.response.status_code)
-            print(error.response.text)
-            raise
+        artifacts_client.create_model(
+            client=self.__api_client,
+            project_id=self.__project_id,
+            model=model,
+            binary=serialized_model)
 
     def set_completed_status(self) -> Run:
         return self._set_status(RunStatus.COMPLETED)

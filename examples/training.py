@@ -8,7 +8,29 @@ from sklearn.model_selection import train_test_split
 
 from modelversioncontrol.client import MvcClient, MvcOptions
 
-options = MvcOptions(api_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InI5Y2F0QVVUdnlmRzZpTHF5ZFBCaiJ9.eyJpc3MiOiJodHRwczovL212Yy1kZXYuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDVmNDI5MTMzNDIwN2QxMDA2ZGVjNWFmMCIsImF1ZCI6WyJodHRwczovL2FwaS5tdmMuaW8iLCJodHRwczovL212Yy1kZXYuZXUuYXV0aDAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTYwMjAwOTI0OSwiZXhwIjoxNjAyMDk1NjQ5LCJhenAiOiIyN1o0S2dFOHZUdU1vNFZIMDg3NG81QzQyTTVzY21OdiIsInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgZW1haWwifQ.MzLyfuCYbqHwdrTcvnZYCuo3Xlj3gn8vdKdVaKUdQpSQSj3m9oIyJvRVKl0bBv0aAF-ZYaCUaNETGaiANtVKpvgTAUw84Dtz-6fdDrVleV_xKo_lDpWO_Lu9d6GRrQQYxAxQDvbYm0DEgBwm8drRlRjKHL7DyMBQ9ausXzKTKJqE0pcJarNZX__MNc0NereXLBQBpkyYwlXfpI6MwYoLxavpJ4wvxRFt3raRk4Az8NMRSTj2yJk2pYV8UDhCcG2nUbaGEdPqnqydaiEwmp5mDgmPBRs7UzKJFnY1EacWsxkO-w-_4wsIkin3scztXSaFtNRw34d9r51yo5NpeOHseg")
+import logging
+import http.client
+
+httpclient_logger = logging.getLogger("http.client")
+
+
+def httpclient_logging_patch(level=logging.DEBUG):
+    """Enable HTTPConnection debug logging to the logging framework"""
+
+    logging.basicConfig(level=logging.DEBUG)
+
+    def httpclient_log(*args):
+        httpclient_logger.log(level, " ".join(args))
+
+    # mask the print() built-in in the http.client module to use
+    # logging instead
+    http.client.print = httpclient_log
+    # enable debugging
+    http.client.HTTPConnection.debuglevel = 1
+
+
+httpclient_logging_patch()
+options = MvcOptions(api_token="")
 mvc_client = MvcClient(options)
 
 
@@ -40,7 +62,9 @@ if __name__ == "__main__":
     alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
     l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
 
-    run = mvc_client.start_new_run(project_id="0cf0a543-76a9-44f2-91ca-6e123ae8a7cf", experiment_key=None, run_name="wine-quality-sample")
+    run = mvc_client.start_new_run(project_id="f103f42a-8625-436f-957f-1bcb4589295d",
+                                   experiment_key=None,  # create new experiment for this run
+                                   run_name="wine-quality-sample")
 
     lr = ElasticNet(alpha=alpha, l1_ratio=l1_ratio, random_state=42)
     lr.fit(train_x, train_y)
