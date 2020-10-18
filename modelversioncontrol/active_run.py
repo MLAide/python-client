@@ -16,11 +16,11 @@ from typing import Union
 class ActiveRun(object):
     __api_client: Client
     __run: Run
-    __project_id: str
+    __project_key: str
 
-    def __init__(self, api_client: Client, project_id: str, experiment_key: str = None, run_name: str = None):
+    def __init__(self, api_client: Client, project_key: str, experiment_key: str = None, run_name: str = None):
         self.__api_client = api_client
-        self.__project_id = project_id
+        self.__project_key = project_key
         self.__run = self.__create_new_run(experiment_key, run_name)
 
     def __create_new_run(self, experiment_key: str = None, run_name: str = None) -> Run:
@@ -39,7 +39,7 @@ class ActiveRun(object):
         try:
             created_run: Union[RunDto, ErrorDto] = runs_client.create_run(
                 client=self.__api_client,
-                project_id=self.__project_id,
+                project_key=self.__project_key,
                 json_body=run_to_create
             )
         except ApiResponseError as error:
@@ -75,7 +75,7 @@ class ActiveRun(object):
         self.__run.metrics[key] = value
         runs_client.update_run_metrics(
             client=self.__api_client,
-            project_id=self.__project_id,
+            project_key=self.__project_key,
             run_id=self.__run.id,
             metrics={key: value})
         return self.__run
@@ -84,7 +84,7 @@ class ActiveRun(object):
         self.__run.parameters[key] = value
         runs_client.update_run_parameters(
             client=self.__api_client,
-            project_id=self.__project_id,
+            project_key=self.__project_key,
             run_id=self.__run.id,
             parameters={key: value})
         return self.__run
@@ -95,7 +95,7 @@ class ActiveRun(object):
         model = ModelDto(name=model_name, run_id=self.__run.id)
         artifacts_client.create_model(
             client=self.__api_client,
-            project_id=self.__project_id,
+            project_key=self.__project_key,
             model=model,
             binary=serialized_model)
 
@@ -110,7 +110,7 @@ class ActiveRun(object):
         self.__run.status = status
         runs_client.partial_update_run(
             client=self.__api_client,
-            project_id=self.__project_id,
+            project_key=self.__project_key,
             run_id=self.__run.id,
             json_body=RunDto(
                 status=RunStatusDto(status.name)
