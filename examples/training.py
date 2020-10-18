@@ -62,7 +62,7 @@ if __name__ == "__main__":
     alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
     l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
 
-    run = mvc_client.start_new_run(project_id="f103f42a-8625-436f-957f-1bcb4589295d",
+    run = mvc_client.start_new_run(project_key="my-first-project",
                                    experiment_key=None,  # create new experiment for this run
                                    run_name="wine-quality-sample")
 

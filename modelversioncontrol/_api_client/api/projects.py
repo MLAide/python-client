@@ -46,10 +46,10 @@ def create_project(*, client: Client, json_body: Project,) -> Union[Project, Err
         raise ApiResponseError(response=response)
 
 
-def show_project_by_id(*, client: Client, project_id: str,) -> Union[Project, None, Error]:
+def show_project_by_id(*, client: Client, project_key: str, ) -> Union[Project, None, Error]:
 
     """  """
-    url = "{}/projects/{projectId}".format(client.base_url, projectId=project_id)
+    url = "{}/projects/{projectKey}".format(client.base_url, projectKey=project_key)
 
     headers: Dict[str, Any] = client.get_headers()
 

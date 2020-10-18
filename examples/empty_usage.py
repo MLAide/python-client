@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     try:
         active_experiment = mvc_client.start_new_run(
-            project_id="2c4c58d9-3929-4452-a155-c88c292efa03",
+            project_key="my-first-project",
             run_name="elasticnet-2")
 
         active_experiment.log_parameter("alpha", 0.7)

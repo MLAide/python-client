@@ -10,11 +10,10 @@ from ..models.error import Error
 from ..models.model import Model
 
 
-def create_model(*, client: Client, project_id: str, model: Model, binary: io.BytesIO) -> Union[Model, Error]:
-    url = "{}/projects/{projectId}/artifacts/models".format(client.base_url, projectId=project_id)
+def create_model(*, client: Client, project_key: str, model: Model, binary: io.BytesIO) -> Union[Model, Error]:
+    url = "{}/projects/{projectKey}/artifacts/models".format(client.base_url, projectKey=project_key)
 
     headers: Dict[str, Any] = client.get_headers()
-    # headers['content-type'] = 'multipart/form-data'
 
     model_json = json.dumps(model.to_dict())
     binary.seek(0)

@@ -51,8 +51,8 @@ class MvcClient:
 
         self.__api_client = AuthenticatedClient(self.__options.mvc_server_url, self.__options.api_token)
 
-    def start_new_run(self, project_id: str, experiment_key: str = None, run_name: str = None) -> ActiveRun:
-        return ActiveRun(self.__api_client, project_id, experiment_key, run_name)
+    def start_new_run(self, project_key: str, experiment_key: str = None, run_name: str = None) -> ActiveRun:
+        return ActiveRun(self.__api_client, project_key, experiment_key, run_name)
 
     @staticmethod
     def __get_default_options() -> MvcOptions:
