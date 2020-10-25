@@ -28,7 +28,7 @@ class ActiveRun(object):
             created_at=None,
             end_time=None,
             experiment_refs=[ExperimentRefDto(experiment_key)] if experiment_key is not None else None,
-            id=None,
+            key=None,
             metrics=None,
             name=run_name,
             parameters=None,
@@ -55,7 +55,7 @@ class ActiveRun(object):
             metrics={} if created_run.metrics is None else created_run.metrics,
             start_time=created_run.start_time,
             end_time=created_run.end_time,
-            id=created_run.id,
+            key=created_run.key,
         )
 
     @property
@@ -67,7 +67,7 @@ class ActiveRun(object):
             status=self.__run.status,
             metrics=self.__run.metrics,
             parameters=self.__run.parameters,
-            id=self.__run.id,
+            key=self.__run.key,
             name=self.__run.name
         )
 
@@ -76,7 +76,7 @@ class ActiveRun(object):
         runs_client.update_run_metrics(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_id=self.__run.id,
+            run_key=self.__run.key,
             metrics={key: value})
         return self.__run
 
@@ -85,14 +85,14 @@ class ActiveRun(object):
         runs_client.update_run_parameters(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_id=self.__run.id,
+            run_key=self.__run.key,
             parameters={key: value})
         return self.__run
 
     def log_model(self, model, model_name):
         serialized_model = _model_serializer.serialize(model)
 
-        model = ModelDto(name=model_name, run_id=self.__run.id)
+        model = ModelDto(name=model_name, run_key=self.__run.key)
         artifacts_client.create_model(
             client=self.__api_client,
             project_key=self.__project_key,
@@ -111,7 +111,7 @@ class ActiveRun(object):
         runs_client.partial_update_run(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_id=self.__run.id,
+            run_key=self.__run.key,
             json_body=RunDto(
                 status=RunStatusDto(status.name)
             )

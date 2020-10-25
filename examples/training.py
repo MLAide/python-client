@@ -30,7 +30,7 @@ def httpclient_logging_patch(level=logging.DEBUG):
 
 
 httpclient_logging_patch()
-options = MvcOptions(api_token="")
+options = MvcOptions(api_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InI5Y2F0QVVUdnlmRzZpTHF5ZFBCaiJ9.eyJpc3MiOiJodHRwczovL212Yy1kZXYuZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDVmNTNhYjY3NDJlMzQ1MDA2ZGIyYjhkMiIsImF1ZCI6Imh0dHBzOi8vYXBpLm12Yy5pbyIsImlhdCI6MTYwMzYzMDU0MCwiZXhwIjoxNjAzNzE2OTQwLCJhenAiOiIyN1o0S2dFOHZUdU1vNFZIMDg3NG81QzQyTTVzY21OdiJ9.EsHhkfSaTRrQOdOGVyGtEYewsPCd-jfA_a_mLA1hTP1glljfMNtEYd8A8ZG5SGKGdT6rEU2wghIduxL98Ke3jqkencmToHcCyK22FnoXcLMH6wh4Ex7RLK4AdD0AiO71x2tpKUxiIyqn6ypfnqnXxk9hjJ28tE6dDGRS7M2gEN-jX4Y0L7O2v_9sArGBm3hF4SMAdgM1qH8XWm34zhtYzwakiebthy4Ydv1JgNNfm7LwpGb4JGQv-25rPB652-z0uD-iTtpCbkRlY9Kp2N4LGZtEOHhDqORGyooL3xn6DPDm5LtD7pTGbEOBaDRls5MXRT1gJJq_4fPqb7FXrlVneA")
 mvc_client = MvcClient(options)
 
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
     l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
 
-    run = mvc_client.start_new_run(project_key="my-first-project",
+    run = mvc_client.start_new_run(project_key="project-x",
                                    experiment_key=None,  # create new experiment for this run
                                    run_name="wine-quality-sample")
 

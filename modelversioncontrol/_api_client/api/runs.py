@@ -42,10 +42,10 @@ def create_run(*, client: Client, project_key: str, json_body: Run) -> Union[Run
         raise ApiResponseError(response=response)
 
 
-def partial_update_run(*, client: Client, project_key: str, run_id: str, json_body: Run) -> Union[None, Error]:
+def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: Run) -> Union[None, Error]:
 
-    url = "{}/projects/{projectKey}/runs/{runId}".format(
-        client.base_url, projectKey=project_key, runId=run_id
+    url = "{}/projects/{projectKey}/runs/{runKey}".format(
+        client.base_url, projectKey=project_key, runKey=run_key
     )
 
     headers: Dict[str, Any] = client.get_headers()
@@ -63,10 +63,10 @@ def partial_update_run(*, client: Client, project_key: str, run_id: str, json_bo
         raise ApiResponseError(response=response)
 
 
-def update_run_parameters(*, client: Client, project_key: str, run_id: str, parameters: Dict[str, Any]) -> Union[None, Error]:
+def update_run_parameters(*, client: Client, project_key: str, run_key: int, parameters: Dict[str, Any]) -> Union[None, Error]:
 
-    url = "{}/projects/{projectKey}/runs/{runId}/parameters".format(
-        client.base_url, projectKey=project_key, runId=run_id
+    url = "{}/projects/{projectKey}/runs/{runKey}/parameters".format(
+        client.base_url, projectKey=project_key, runKey=run_key
     )
 
     headers: Dict[str, Any] = client.get_headers()
@@ -82,10 +82,10 @@ def update_run_parameters(*, client: Client, project_key: str, run_id: str, para
         raise ApiResponseError(response=response)
 
 
-def update_run_metrics(*, client: Client, project_key: str, run_id: str, metrics: Dict[str, Any]) -> Union[None, Error]:
+def update_run_metrics(*, client: Client, project_key: str, run_key: int, metrics: Dict[str, Any]) -> Union[None, Error]:
 
-    url = "{}/projects/{projectKey}/runs/{runId}/metrics".format(
-        client.base_url, projectKey=project_key, runId=run_id
+    url = "{}/projects/{projectKey}/runs/{runKey}/metrics".format(
+        client.base_url, projectKey=project_key, runKey=run_key
     )
 
     headers: Dict[str, Any] = client.get_headers()
