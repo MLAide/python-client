@@ -12,7 +12,7 @@ class RunStatus(Enum):
 
 @dataclass
 class Run(object):
-    id: str
+    key: str
     name: str
     start_time: datetime
     end_time: datetime

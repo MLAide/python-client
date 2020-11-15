@@ -1,8 +1,8 @@
 """ Contains all the data models used in inputs/outputs """
 
+from .artifact import Artifact
 from .experiment_ref import ExperimentRef
 from .error import Error
-from .model import Model
 from .run import Run
 from .runs import Experiments
 from .project import Project
