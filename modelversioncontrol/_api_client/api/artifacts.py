@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, Union, cast, Optional
 
 import httpx
 import io
@@ -6,20 +6,41 @@ import json
 
 from ..client import Client
 from ..errors import ApiResponseError
+from ..models.artifact import  Artifact
 from ..models.error import Error
-from ..models.model import Model
 
 
-def create_model(*, client: Client, project_key: str, model: Model, binary: io.BytesIO) -> Union[Model, Error]:
-    url = "{}/projects/{projectKey}/artifacts/models".format(client.base_url, projectKey=project_key)
+def create_model(*, client: Client, project_key: str, artifact_name: str, artifact_version: int) -> Optional[Error]:
+    url = "{}/projects/{projectKey}/artifacts/{artifactName}/{artifactVersion}/model"\
+        .format(client.base_url, projectKey=project_key, artifactName=artifact_name, artifactVersion=artifact_version)
 
     headers: Dict[str, Any] = client.get_headers()
 
-    model_json = json.dumps(model.to_dict())
+    response = httpx.request(
+        method="PUT",
+        url=url,
+        headers=headers,
+    )
+
+    if response.status_code == 204:
+        return None
+    if response.status_code == 500:
+        return Error.from_dict(cast(Dict[str, Any], response.json()))
+    else:
+        raise ApiResponseError(response=response)
+
+
+def create_artifact(*, client: Client, project_key: str, artifact: Artifact, binary: io.BytesIO) -> Union[Artifact, Error]:
+    url = "{}/projects/{projectKey}/artifacts"\
+        .format(client.base_url, projectKey=project_key)
+
+    headers: Dict[str, Any] = client.get_headers()
+
+    artifact_json = json.dumps(artifact.to_dict())
     binary.seek(0)
 
     multipart = {
-        'model': ('model', model_json, 'application/json'),
+        'artifact': ('artifact', artifact_json, 'application/json'),
         'binary': ('binary', binary, 'application/octet-stream')
     }
     response = httpx.request(
@@ -30,7 +51,7 @@ def create_model(*, client: Client, project_key: str, model: Model, binary: io.B
     )
 
     if response.status_code == 200:
-        return Model.from_dict(cast(Dict[str, Any], response.json()))
+        return Artifact.from_dict(cast(Dict[str, Any], response.json()))
     if response.status_code == 500:
         return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:

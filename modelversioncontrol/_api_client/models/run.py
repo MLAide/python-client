@@ -20,10 +20,11 @@ class Run:
     parameters: Optional[Dict[str, Any]] = None
     start_time: Optional[datetime.datetime] = None
     status: Optional[Status] = None
-    user: Optional[Dict[Any, Any]] = None
+    created_by: Optional[Dict[Any, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         created_at = self.created_at.isoformat() if self.created_at else None
+        created_by = self.created_by if self.created_by else None
         end_time = self.end_time.isoformat() if self.end_time else None
         experiment_refs = list(map(lambda ref: ref.to_dict(), self.experiment_refs)) if self.experiment_refs else None
         key = self.key if self.key else None
@@ -32,11 +33,12 @@ class Run:
         parameters = self.parameters if self.parameters else None
         start_time = self.start_time.isoformat() if self.start_time else None
         status = self.status.value if self.status else None
-        user = self.user if self.user else None
 
         result = {}
         if created_at is not None:
             result["createdAt"] = created_at
+        if created_by is not None:
+            result["createdBy"] = created_by
         if end_time is not None:
             result["endTime"] = end_time
         if experiment_refs is not None:
@@ -53,8 +55,6 @@ class Run:
             result["startTime"] = start_time
         if status is not None:
             result["status"] = status
-        if user is not None:
-            result["user"] = user
 
         return result
 
@@ -69,8 +69,6 @@ class Run:
         experiment_refs = None
         if d.get("experimentRefs") is not None:
             experiment_refs = map(lambda ref: ExperimentRef.from_dict(ref), d.get("experimentRefs"))
-
-        key = d["key"]
 
         metrics = None
         if d.get("metrics") is not None:
@@ -88,7 +86,9 @@ class Run:
 
         status = Status(d["status"])
 
-        user = d["user"]
+        created_by = d["createdBy"]
+
+        key = d["key"]
 
         return Run(
             created_at=created_at,
@@ -100,5 +100,5 @@ class Run:
             parameters=parameters,
             start_time=start_time,
             status=status,
-            user=user,
+            created_by=created_by,
         )

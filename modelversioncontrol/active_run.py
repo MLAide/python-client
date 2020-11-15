@@ -1,10 +1,11 @@
 from modelversioncontrol.run import Run, RunStatus
 from . import _model_serializer
+from .artifact import Artifact
 from ._api_client import Client
 from ._api_client.api import runs as runs_client, artifacts as artifacts_client
 from ._api_client.models import \
+    Artifact as ArtifactDto, \
     ExperimentRef as ExperimentRefDto, \
-    Model as ModelDto, \
     Run as RunDto, \
     Status as RunStatusDto, \
     Error as ErrorDto
@@ -34,7 +35,7 @@ class ActiveRun(object):
             parameters=None,
             start_time=None,
             status=RunStatusDto.RUNNING,
-            user=None
+            created_by=None
         )
         try:
             created_run: Union[RunDto, ErrorDto] = runs_client.create_run(
@@ -92,12 +93,35 @@ class ActiveRun(object):
     def log_model(self, model, model_name):
         serialized_model = _model_serializer.serialize(model)
 
-        model = ModelDto(name=model_name, run_key=self.__run.key)
+        artifact = Artifact(name=model_name, type="model")
+        artifact.add_file(serialized_model)
+        artifact = self.log_artifact(artifact)
+
         artifacts_client.create_model(
             client=self.__api_client,
             project_key=self.__project_key,
-            model=model,
-            binary=serialized_model)
+            artifact_name=artifact.name,
+            artifact_version=artifact.version)
+
+    def log_artifact(self, artifact: Artifact):
+        artifact_dto = ArtifactDto(name=artifact.name, type=artifact.type, metadata=artifact.metadata)
+        artifact_dto.run_key = self.__run.key
+
+        artifact_dto = artifacts_client.create_artifact(
+            client=self.__api_client,
+            project_key=self.__project_key,
+            artifact=artifact_dto,
+            binary=artifact.file)
+
+        return Artifact(
+            created_at=artifact_dto.created_at,
+            name=artifact_dto.name,
+            metadata=artifact_dto.metadata,
+            run_key=artifact_dto.run_key,
+            run_name=artifact_dto.run_name,
+            type=artifact_dto.type,
+            updated_at=artifact_dto.updated_at,
+            version=artifact_dto.version)
 
     def set_completed_status(self) -> Run:
         return self._set_status(RunStatus.COMPLETED)
@@ -111,7 +135,7 @@ class ActiveRun(object):
         runs_client.partial_update_run(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_key=self.__run.key,
+            run_id=self.__run.id,
             json_body=RunDto(
                 status=RunStatusDto(status.name)
             )
