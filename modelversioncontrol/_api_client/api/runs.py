@@ -42,7 +42,7 @@ def create_run(*, client: Client, project_key: str, json_body: Run) -> Union[Run
         raise ApiResponseError(response=response)
 
 
-def partial_update_run(*, client: Client, project_key: str, run_key: str, json_body: Run) -> Union[None, Error]:
+def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: Run) -> Union[None, Error]:
 
     url = "{}/projects/{projectKey}/runs/{runKey}".format(
         client.base_url, projectKey=project_key, runKey=run_key
@@ -63,7 +63,7 @@ def partial_update_run(*, client: Client, project_key: str, run_key: str, json_b
         raise ApiResponseError(response=response)
 
 
-def update_run_parameters(*, client: Client, project_key: str, run_key: str, parameters: Dict[str, Any]) -> Union[None, Error]:
+def update_run_parameters(*, client: Client, project_key: str, run_key: int, parameters: Dict[str, Any]) -> Union[None, Error]:
 
     url = "{}/projects/{projectKey}/runs/{runKey}/parameters".format(
         client.base_url, projectKey=project_key, runKey=run_key
@@ -82,7 +82,7 @@ def update_run_parameters(*, client: Client, project_key: str, run_key: str, par
         raise ApiResponseError(response=response)
 
 
-def update_run_metrics(*, client: Client, project_key: str, run_key: str, metrics: Dict[str, Any]) -> Union[None, Error]:
+def update_run_metrics(*, client: Client, project_key: str, run_key: int, metrics: Dict[str, Any]) -> Union[None, Error]:
 
     url = "{}/projects/{projectKey}/runs/{runKey}/metrics".format(
         client.base_url, projectKey=project_key, runKey=run_key

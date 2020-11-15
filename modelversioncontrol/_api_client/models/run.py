@@ -14,7 +14,7 @@ class Run:
     created_at: Optional[datetime.datetime] = None
     end_time: Optional[datetime.datetime] = None
     experiment_refs: Optional[List[ExperimentRef]] = None
-    key: Optional[str] = None
+    key: Optional[int] = None
     metrics: Optional[Dict[str, Any]] = None
     name: Optional[str] = None
     parameters: Optional[Dict[str, Any]] = None
