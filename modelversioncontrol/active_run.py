@@ -135,7 +135,7 @@ class ActiveRun(object):
         runs_client.partial_update_run(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_id=self.__run.id,
+            run_key=self.__run.key,
             json_body=RunDto(
                 status=RunStatusDto(status.name)
             )
