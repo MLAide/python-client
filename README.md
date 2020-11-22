@@ -1,5 +1,21 @@
 # Python SDK - Model Version Control
 
+## Run example scripts
+In `examples/` you can find some python scripts as an example.
+The shell scripts can be used for easier usage.
+
+Run the following commands once in a terminal session
+```shell script
+cd examples/
+source ./set_api_token.sh
+```
+
+After that you can use the following command to run the scripts
+over and over again:
+```shell script
+./run_example.sh
+```
+
 ## Contribution
 ### Prerequisites
 1. Install [Python](https://www.python.org/)
