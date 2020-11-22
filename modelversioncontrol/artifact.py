@@ -12,7 +12,7 @@ class Artifact(object):
     created_at: datetime = None
     file: Optional[BytesIO] = None
     metadata: Optional[Dict[str, str]] = None
-    run_key: Optional[str] = None
+    run_key: Optional[int] = None
     run_name: Optional[str] = None
     updated_at: datetime = None
     version: Optional[int] = None

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
-from .active_run import ActiveRun
 from ._api_client import AuthenticatedClient
+from .active_run import ActiveRun
+from .artifact_ref import ArtifactRef
 
 
 @dataclass
@@ -51,8 +52,12 @@ class MvcClient:
 
         self.__api_client = AuthenticatedClient(self.__options.mvc_server_url, self.__options.api_token)
 
-    def start_new_run(self, project_key: str, experiment_key: str = None, run_name: str = None) -> ActiveRun:
-        return ActiveRun(self.__api_client, project_key, experiment_key, run_name)
+    def start_new_run(self,
+                      project_key: str,
+                      experiment_key: str = None,
+                      run_name: str = None,
+                      used_artifacts: List[ArtifactRef] = None) -> ActiveRun:
+        return ActiveRun(self.__api_client, project_key, experiment_key, run_name, used_artifacts)
 
     @staticmethod
     def __get_default_options() -> MvcOptions:

@@ -5,6 +5,7 @@ from dateutil import parser
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, cast, List
 
+from .artifact_ref import ArtifactRef
 from .experiment_ref import ExperimentRef
 from .status import Status
 
@@ -12,6 +13,7 @@ from .status import Status
 @dataclass
 class Run:
     created_at: Optional[datetime.datetime] = None
+    created_by: Optional[Dict[Any, Any]] = None
     end_time: Optional[datetime.datetime] = None
     experiment_refs: Optional[List[ExperimentRef]] = None
     key: Optional[int] = None
@@ -20,7 +22,7 @@ class Run:
     parameters: Optional[Dict[str, Any]] = None
     start_time: Optional[datetime.datetime] = None
     status: Optional[Status] = None
-    created_by: Optional[Dict[Any, Any]] = None
+    used_artifacts: Optional[List[ArtifactRef]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         created_at = self.created_at.isoformat() if self.created_at else None
@@ -33,6 +35,7 @@ class Run:
         parameters = self.parameters if self.parameters else None
         start_time = self.start_time.isoformat() if self.start_time else None
         status = self.status.value if self.status else None
+        used_artifacts = list(map(lambda a: a.to_dict(), self.used_artifacts)) if self.used_artifacts else None
 
         result = {}
         if created_at is not None:
@@ -55,6 +58,8 @@ class Run:
             result["startTime"] = start_time
         if status is not None:
             result["status"] = status
+        if used_artifacts is not None:
+            result["usedArtifacts"] = used_artifacts
 
         return result
 
@@ -90,8 +95,13 @@ class Run:
 
         key = d["key"]
 
+        used_artifacts = None
+        if d.get("usedArtifacts") is not None:
+            used_artifacts = map(lambda a: ArtifactRef.from_dict(a), d.get("usedArtifacts"))
+
         return Run(
             created_at=created_at,
+            created_by=created_by,
             end_time=end_time,
             experiment_refs=experiment_refs,
             key=key,
@@ -100,5 +110,5 @@ class Run:
             parameters=parameters,
             start_time=start_time,
             status=status,
-            created_by=created_by,
+            used_artifacts=used_artifacts
         )
