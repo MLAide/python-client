@@ -8,6 +8,7 @@ venv/
 # Project specific
 build/
 dist/
+examples/winequality-red.csv
 
 # Log files
 *.log

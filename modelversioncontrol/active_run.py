@@ -1,17 +1,19 @@
 from modelversioncontrol.run import Run, RunStatus
 from . import _model_serializer
 from .artifact import Artifact
+from .artifact_ref import ArtifactRef
 from ._api_client import Client
 from ._api_client.api import runs as runs_client, artifacts as artifacts_client
 from ._api_client.models import \
     Artifact as ArtifactDto, \
+    ArtifactRef as ArtifactRefDto, \
     ExperimentRef as ExperimentRefDto, \
     Run as RunDto, \
     Status as RunStatusDto, \
     Error as ErrorDto
 from ._api_client.errors import ApiResponseError
 from datetime import datetime
-from typing import Union
+from typing import List, Union
 
 
 class ActiveRun(object):
@@ -19,14 +21,23 @@ class ActiveRun(object):
     __run: Run
     __project_key: str
 
-    def __init__(self, api_client: Client, project_key: str, experiment_key: str = None, run_name: str = None):
+    def __init__(self,
+                 api_client: Client,
+                 project_key: str,
+                 experiment_key: str = None,
+                 run_name: str = None,
+                 used_artifacts: List[ArtifactRef] = None):
         self.__api_client = api_client
         self.__project_key = project_key
-        self.__run = self.__create_new_run(experiment_key, run_name)
+        self.__run = self.__create_new_run(experiment_key, run_name, used_artifacts)
 
-    def __create_new_run(self, experiment_key: str = None, run_name: str = None) -> Run:
+    def __create_new_run(self,
+                         experiment_key: str = None,
+                         run_name: str = None,
+                         used_artifacts: List[ArtifactRef] = None) -> Run:
         run_to_create = RunDto(
             created_at=None,
+            created_by=None,
             end_time=None,
             experiment_refs=[ExperimentRefDto(experiment_key)] if experiment_key is not None else None,
             key=None,
@@ -35,7 +46,7 @@ class ActiveRun(object):
             parameters=None,
             start_time=None,
             status=RunStatusDto.RUNNING,
-            created_by=None
+            used_artifacts=self.__map_artifact_refs(used_artifacts)
         )
         try:
             created_run: Union[RunDto, ErrorDto] = runs_client.create_run(
@@ -58,6 +69,10 @@ class ActiveRun(object):
             end_time=created_run.end_time,
             key=created_run.key,
         )
+
+    @staticmethod
+    def __map_artifact_refs(artifacts: List[ArtifactRef] = None):
+        return list(map(lambda a: ArtifactRefDto(name=a.name, version=a.version), artifacts)) if artifacts else None
 
     @property
     def run(self) -> Run:
@@ -135,7 +150,7 @@ class ActiveRun(object):
         runs_client.partial_update_run(
             client=self.__api_client,
             project_key=self.__project_key,
-            run_id=self.__run.id,
+            run_key=self.__run.key,
             json_body=RunDto(
                 status=RunStatusDto(status.name)
             )

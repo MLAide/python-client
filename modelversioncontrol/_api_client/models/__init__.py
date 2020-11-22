@@ -1,6 +1,7 @@
 """ Contains all the data models used in inputs/outputs """
 
 from .artifact import Artifact
+from .artifact_ref import ArtifactRef
 from .experiment_ref import ExperimentRef
 from .error import Error
 from .run import Run
