@@ -1,4 +1,3 @@
-import sys
 import os
 
 import numpy as np
@@ -10,7 +9,17 @@ from sklearn.model_selection import train_test_split
 from modelversioncontrol.artifact_ref import ArtifactRef
 from modelversioncontrol.client import MvcClient
 
+project_key = os.getenv("MVC_PROJECT_KEY", None)
 experiment_key = os.getenv("MVC_EXPERIMENT_KEY", None)
+
+if project_key is None:
+    project_key = input("Enter project key: ")
+if experiment_key is None:
+    experiment_key = input("Enter experiment key: ")
+
+use_cleaned_data = True if input("Use cleaned data (cleaned) or raw data (raw)? ") == "cleaned" else False
+
+# create mvc client
 mvc_client = MvcClient()
 
 
@@ -25,15 +34,16 @@ if __name__ == "__main__":
     np.random.seed(40)
 
     # Read the wine-quality csv file from filesystem
-    data = pd.read_csv("./winequality-red.csv", sep=";")
+    data = pd.read_csv("./cleaned.csv", sep=";") if use_cleaned_data else pd.read_csv("./winequality-red.csv", sep=";")
 
     ##################
     # Create a new run
     # Also attach the input artifacts to this run
-    artifact_ref = ArtifactRef(name="winequality-red.csv", version=1)
-    run = mvc_client.start_new_run(project_key="projekt",
+    artifact_ref_name = "wine quality red cleaned" if use_cleaned_data else "wine quality red raw data"
+    artifact_ref = ArtifactRef(name=artifact_ref_name, version=1)
+    run = mvc_client.start_new_run(project_key=project_key,
                                    experiment_key=experiment_key,
-                                   run_name="wine-quality-model-training",
+                                   run_name="training",
                                    used_artifacts=[artifact_ref])
 
     # Split the data into training and test sets. (0.75, 0.25) split.
@@ -45,8 +55,10 @@ if __name__ == "__main__":
     train_y = train[["quality"]]
     test_y = test[["quality"]]
 
-    alpha = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5
-    l1_ratio = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5
+    alpha_input = input("alpha (default: 0.5): ")
+    l1_ratio_input = input("l1 ration (default: 0.5): ")
+    alpha = float(alpha_input) if len(alpha_input) > 0 else 0.5
+    l1_ratio = float(l1_ratio_input) if len(l1_ratio_input) > 0 else 0.5
 
     # Train/fit the model
     lr = ElasticNet(alpha=alpha, l1_ratio=l1_ratio, random_state=42)
@@ -71,7 +83,7 @@ if __name__ == "__main__":
 
     #######################
     # Log the trained model
-    run.log_model(lr, model_name="ElasticnetWineModel")
+    run.log_model(lr, model_name="Elasticnet Wine Model")
 
     ##########################
     # Set the run as completed
