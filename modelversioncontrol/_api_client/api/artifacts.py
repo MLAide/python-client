@@ -10,7 +10,7 @@ from ..models.artifact import  Artifact
 from ..models.error import Error
 
 
-def create_model(*, client: Client, project_key: str, artifact_name: str, artifact_version: int) -> Optional[Error]:
+def create_model(*, client: Client, project_key: str, artifact_name: str, artifact_version: int) -> None:
     url = "{}/projects/{projectKey}/artifacts/{artifactName}/{artifactVersion}/model"\
         .format(client.base_url, projectKey=project_key, artifactName=artifact_name, artifactVersion=artifact_version)
 
@@ -24,13 +24,11 @@ def create_model(*, client: Client, project_key: str, artifact_name: str, artifa
 
     if response.status_code == 204:
         return None
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def create_artifact(*, client: Client, project_key: str, artifact: Artifact, binary: io.BytesIO) -> Union[Artifact, Error]:
+def create_artifact(*, client: Client, project_key: str, artifact: Artifact, binary: io.BytesIO) -> Artifact:
     url = "{}/projects/{projectKey}/artifacts"\
         .format(client.base_url, projectKey=project_key)
 
@@ -52,7 +50,5 @@ def create_artifact(*, client: Client, project_key: str, artifact: Artifact, bin
 
     if response.status_code == 200:
         return Artifact.from_dict(cast(Dict[str, Any], response.json()))
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))

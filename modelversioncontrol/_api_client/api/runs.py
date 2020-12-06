@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, cast
 
 import httpx
 
@@ -8,7 +8,7 @@ from ..models.error import Error
 from ..models.run import Run
 
 
-def list_runs(*, client: Client, project_key: str) -> Union[Run, Error]:
+def list_runs(*, client: Client, project_key: str) -> Run:
 
     url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)
 
@@ -18,13 +18,11 @@ def list_runs(*, client: Client, project_key: str) -> Union[Run, Error]:
 
     if response.status_code == 200:
         return Run.from_dict(cast(Dict[str, Any], response.json()))
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def create_run(*, client: Client, project_key: str, json_body: Run) -> Union[Run, Error]:
+def create_run(*, client: Client, project_key: str, json_body: Run) -> Run:
 
     url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)
 
@@ -36,13 +34,11 @@ def create_run(*, client: Client, project_key: str, json_body: Run) -> Union[Run
 
     if response.status_code == 200:
         return Run.from_dict(cast(Dict[str, Any], response.json()))
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: Run) -> Union[None, Error]:
+def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: Run) -> None:
 
     url = "{}/projects/{projectKey}/runs/{runKey}".format(
         client.base_url, projectKey=project_key, runKey=run_key
@@ -57,13 +53,11 @@ def partial_update_run(*, client: Client, project_key: str, run_key: int, json_b
 
     if response.status_code == 204:
         return None
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def update_run_parameters(*, client: Client, project_key: str, run_key: int, parameters: Dict[str, Any]) -> Union[None, Error]:
+def update_run_parameters(*, client: Client, project_key: str, run_key: int, parameters: Dict[str, Any]) -> None:
 
     url = "{}/projects/{projectKey}/runs/{runKey}/parameters".format(
         client.base_url, projectKey=project_key, runKey=run_key
@@ -76,13 +70,11 @@ def update_run_parameters(*, client: Client, project_key: str, run_key: int, par
 
     if response.status_code == 204:
         return None
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def update_run_metrics(*, client: Client, project_key: str, run_key: int, metrics: Dict[str, Any]) -> Union[None, Error]:
+def update_run_metrics(*, client: Client, project_key: str, run_key: int, metrics: Dict[str, Any]) -> None:
 
     url = "{}/projects/{projectKey}/runs/{runKey}/metrics".format(
         client.base_url, projectKey=project_key, runKey=run_key
@@ -95,7 +87,5 @@ def update_run_metrics(*, client: Client, project_key: str, run_key: int, metric
 
     if response.status_code == 204:
         return None
-    if response.status_code == 500:
-        return Error.from_dict(cast(Dict[str, Any], response.json()))
     else:
-        raise ApiResponseError(response=response)
+        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
