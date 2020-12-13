@@ -34,12 +34,11 @@ if __name__ == "__main__":
 
     ###############################
     # Attach the dataset to the run
-    artifact = Artifact(name="wine quality red cleaned", type="dataset")
-    artifact.add_file('./cleaned.csv')
-    artifact.metadata = {
+    metadata = {
         "description": "removed each second row"
     }
-    run.log_artifact(artifact)
+    artifact = run.create_artifact(name="wine quality red cleaned", type="dataset", metadata=metadata)
+    run.add_artifact_file(artifact, './cleaned.csv')
 
     ##########################
     # Set the run as completed

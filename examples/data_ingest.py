@@ -2,7 +2,6 @@ import os
 import shutil
 import urllib.request
 
-from modelversioncontrol.artifact import Artifact
 from modelversioncontrol.client import MvcClient
 
 project_key = os.getenv("MVC_PROJECT_KEY")
@@ -29,14 +28,13 @@ if __name__ == "__main__":
     with urllib.request.urlopen(csv_url) as response, open("./winequality-red.csv", 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
 
-    ###############################
-    # Attach the dataset to the run
-    artifact = Artifact(name="wine quality red raw data", type="dataset")
-    artifact.add_file('./winequality-red.csv')
-    artifact.metadata = {
+    ##############################################
+    # Attach the dataset to the run as an artifact
+    metadata = {
         "source": csv_url
     }
-    run.log_artifact(artifact)
+    artifact = run.create_artifact(name="wine quality red raw data", type="dataset", metadata=metadata)
+    run.add_artifact_file(artifact, './winequality-red.csv')
 
     ##########################
     # Set the run as completed

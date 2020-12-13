@@ -13,7 +13,9 @@ from ._api_client.models import \
     Error as ErrorDto
 from ._api_client.errors import ApiResponseError
 from datetime import datetime
-from typing import List, Union
+from typing import Dict, List, Optional, Union
+from io import BytesIO
+from pathlib import Path
 
 
 class ActiveRun(object):
@@ -105,12 +107,11 @@ class ActiveRun(object):
             parameters={key: value})
         return self.__run
 
-    def log_model(self, model, model_name):
+    def log_model(self, model, model_name: str, metadata: Optional[Dict[str, str]] = None):
         serialized_model = _model_serializer.serialize(model)
 
-        artifact = Artifact(name=model_name, type="model")
-        artifact.add_file(serialized_model)
-        artifact = self.log_artifact(artifact)
+        artifact = self.create_artifact(name=model_name, type="model", metadata=metadata)
+        self.add_artifact_file(artifact, serialized_model)
 
         artifacts_client.create_model(
             client=self.__api_client,
@@ -118,15 +119,14 @@ class ActiveRun(object):
             artifact_name=artifact.name,
             artifact_version=artifact.version)
 
-    def log_artifact(self, artifact: Artifact):
-        artifact_dto = ArtifactDto(name=artifact.name, type=artifact.type, metadata=artifact.metadata)
+    def create_artifact(self, name: str, type: str, metadata: Optional[Dict[str, str]]) -> Artifact:
+        artifact_dto = ArtifactDto(name=name, type=type, metadata=metadata)
         artifact_dto.run_key = self.__run.key
 
         artifact_dto = artifacts_client.create_artifact(
             client=self.__api_client,
             project_key=self.__project_key,
-            artifact=artifact_dto,
-            binary=artifact.file)
+            artifact=artifact_dto)
 
         return Artifact(
             created_at=artifact_dto.created_at,
@@ -137,6 +137,35 @@ class ActiveRun(object):
             type=artifact_dto.type,
             updated_at=artifact_dto.updated_at,
             version=artifact_dto.version)
+
+    def add_artifact_file(self, artifact: Artifact, file: Union[str, BytesIO]):
+        artifacts_client.upload_file(
+            client=self.__api_client,
+            project_key=self.__project_key,
+            artifact_name=artifact.name,
+            artifact_version=artifact.version,
+            file=ActiveRun.__normalize_file(file))
+
+    @staticmethod
+    def __normalize_file(file: Union[str, BytesIO]):
+        if isinstance(file, str):  # Read the file behind the string/path
+            if file.startswith('http://') or file.startswith('https://'):  # The file must be downloaded
+                pass
+                # TODO: Download file
+
+            else:  # The file must be read from filesystem
+                path = Path(file)
+
+                if path.is_file():  # check if it is only a single file
+                    file_bytes = path.read_bytes()
+                    return BytesIO(file_bytes)
+
+                elif path.is_dir():  # ... or is it a directory?
+                    pass
+                    # TODO: Read all files from directory
+
+        else:  # The passed file is already of type BytesIO
+            return file
 
     def set_completed_status(self) -> Run:
         return self._set_status(RunStatus.COMPLETED)
