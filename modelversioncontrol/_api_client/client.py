@@ -17,8 +17,8 @@ class Client:
 class AuthenticatedClient(Client):
     """ A Client which has been authenticated for use on secured endpoints """
 
-    token: str
+    api_key: str
 
     def get_headers(self) -> Dict[str, str]:
         """ Get headers to be used in authenticated endpoints """
-        return {"Authorization": f"Bearer {self.token}"}
+        return {"x-api-key": f"{self.api_key}"}
