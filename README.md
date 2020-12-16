@@ -7,7 +7,7 @@ The shell scripts can be used for easier usage.
 Run the following commands once in a terminal session
 ```shell script
 cd examples/
-source ./set_api_token.sh
+source ./set_api_key.sh
 ```
 
 After that you can use the following command to run the scripts

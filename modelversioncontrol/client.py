@@ -12,16 +12,16 @@ from .artifact_ref import ArtifactRef
 @dataclass
 class MvcOptions:
     mvc_server_url: Optional[str]
-    api_token: Optional[str]
+    api_key: Optional[str]
 
-    def __init__(self, mvc_server_url: str = None, api_token: str = None):
+    def __init__(self, mvc_server_url: str = None, api_key: str = None):
         self.mvc_server_url = mvc_server_url
-        self.api_token = api_token
+        self.api_key = api_key
 
     def to_dict(self) -> Dict[str, Any]:
         d = {
             "mvc_server_url": self.mvc_server_url,
-            "api_token": self.api_token
+            "api_key": self.api_key
         }
 
         # Remove values from dict that are None
@@ -34,7 +34,7 @@ class MvcOptions:
 
         options = MvcOptions(
             mvc_server_url=d.get("mvc_server_url", None),
-            api_token=d.get("api_token", None)
+            api_key=d.get("api_key", None)
         )
 
         return options
@@ -50,7 +50,8 @@ class MvcClient:
         else:
             self.__options = MvcClient.__merge_options(MvcClient.__get_default_options(), options)
 
-        self.__api_client = AuthenticatedClient(self.__options.mvc_server_url, self.__options.api_token)
+        self.__api_client = AuthenticatedClient(base_url=self.__options.mvc_server_url,
+                                                api_key=self.__options.api_key)
 
     def start_new_run(self,
                       project_key: str,
@@ -63,7 +64,7 @@ class MvcClient:
     def __get_default_options() -> MvcOptions:
         options = MvcOptions()
         options.mvc_server_url = "http://localhost:9000/api/v1"
-        options.api_token = os.environ.get('MVC_API_TOKEN')
+        options.api_key = os.environ.get('MVC_API_KEY')
         return options
 
     @staticmethod
