@@ -1,22 +1,14 @@
-import os
 import shutil
 import urllib.request
 
 from modelversioncontrol.client import MvcClient
-
-project_key = os.getenv("MVC_PROJECT_KEY")
-experiment_key = os.getenv("MVC_EXPERIMENT_KEY", None)
-
-if project_key is None:
-    project_key = input("Enter project key: ")
-if experiment_key is None:
-    experiment_key = input("Enter experiment key: ")
-
-# create mvc client
-mvc_client = MvcClient()
+from parameters import get_project_key, get_experiment_key
 
 
-if __name__ == "__main__":
+def run_ingest(project_key: str, experiment_key: str):
+    # create mvc client
+    mvc_client = MvcClient()
+
     ##################
     # Create a new run
     run = mvc_client.start_new_run(project_key=project_key,
@@ -39,3 +31,9 @@ if __name__ == "__main__":
     ##########################
     # Set the run as completed
     run.set_completed_status()
+
+
+if __name__ == "__main__":
+    p = get_project_key()
+    e = get_experiment_key()
+    run_ingest(p, e)
