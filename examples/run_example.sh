@@ -9,7 +9,7 @@ read -r EXPERIMENT_KEY
 export MVC_EXPERIMENT_KEY="$EXPERIMENT_KEY"
 
 printf "Running data preprocessing\n"
-python data_preprocessing.py
+python data_ingest.py
 
 printf "Running model training\n"
 python training.py

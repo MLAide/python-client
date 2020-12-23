@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Union
 from io import BytesIO
 from pathlib import Path
+from os.path import relpath
 
 
 class ActiveRun(object):
@@ -110,8 +111,8 @@ class ActiveRun(object):
     def log_model(self, model, model_name: str, metadata: Optional[Dict[str, str]] = None):
         serialized_model = _model_serializer.serialize(model)
 
-        artifact = self.create_artifact(name=model_name, type="model", metadata=metadata)
-        self.add_artifact_file(artifact, serialized_model)
+        artifact = self.create_artifact(name=model_name, type='model', metadata=metadata)
+        self.add_artifact_file(artifact=artifact, file=serialized_model, filename='model.pkl')
 
         artifacts_client.create_model(
             client=self.__api_client,
@@ -138,16 +139,25 @@ class ActiveRun(object):
             updated_at=artifact_dto.updated_at,
             version=artifact_dto.version)
 
-    def add_artifact_file(self, artifact: Artifact, file: Union[str, BytesIO]):
+    def add_artifact_file(self, artifact: Artifact, file: Union[str, BytesIO], filename: str = None):
         artifacts_client.upload_file(
             client=self.__api_client,
             project_key=self.__project_key,
             artifact_name=artifact.name,
             artifact_version=artifact.version,
+            filename=filename if filename is not None else ActiveRun.__extract_filename(file),
             file=ActiveRun.__normalize_file(file))
 
     @staticmethod
-    def __normalize_file(file: Union[str, BytesIO]):
+    def __extract_filename(file: Union[str, BytesIO]) -> str:
+        print(file)
+        if isinstance(file, str):
+            return relpath(file)
+
+        raise Exception('filename must be provided if provided file is of type io.BytesIO')
+
+    @staticmethod
+    def __normalize_file(file: Union[str, BytesIO]) -> BytesIO:
         if isinstance(file, str):  # Read the file behind the string/path
             if file.startswith('http://') or file.startswith('https://'):  # The file must be downloaded
                 pass
