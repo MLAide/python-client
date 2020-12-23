@@ -39,6 +39,7 @@ if __name__ == "__main__":
     }
     artifact = run.create_artifact(name="wine quality red cleaned", type="dataset", metadata=metadata)
     run.add_artifact_file(artifact, './cleaned.csv')
+    run.add_artifact_file(artifact, './sub/data.txt')
 
     ##########################
     # Set the run as completed

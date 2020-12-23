@@ -46,12 +46,13 @@ def create_artifact(*, client: Client, project_key: str, artifact: Artifact) -> 
         raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def upload_file(*, client: Client, project_key: str, artifact_name: str, artifact_version: int, file: io.BytesIO):
+def upload_file(*, client: Client, project_key: str, artifact_name: str, artifact_version: int, filename: str, file: io.BytesIO):
     url = "{}/projects/{projectKey}/artifacts/{artifactName}/{artifactVersion}/files"\
         .format(client.base_url, projectKey=project_key, artifactName=artifact_name, artifactVersion=artifact_version)
 
     headers: Dict[str, Any] = client.get_headers()
-    files = {'file': file}
+
+    files = {'file': (filename, file)}
 
     response = httpx.request(
         method="POST",
