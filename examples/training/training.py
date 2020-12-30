@@ -1,26 +1,12 @@
-import os
-
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-from modelversioncontrol.artifact_ref import ArtifactRef
+from modelversioncontrol.model import ArtifactRef
 from modelversioncontrol.client import MvcClient
-
-project_key = os.getenv("MVC_PROJECT_KEY", None)
-experiment_key = os.getenv("MVC_EXPERIMENT_KEY", None)
-
-if project_key is None:
-    project_key = input("Enter project key: ")
-if experiment_key is None:
-    experiment_key = input("Enter experiment key: ")
-
-use_cleaned_data = True if input("Use cleaned data (cleaned) or raw data (raw)? ") == "cleaned" else False
-
-# create mvc client
-mvc_client = MvcClient()
+from parameters import *
 
 
 def eval_metrics(actual, pred):
@@ -30,7 +16,10 @@ def eval_metrics(actual, pred):
     return rmse, mae, r2
 
 
-if __name__ == "__main__":
+def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, alpha: float, l1_ratio: float):
+    # create mvc client
+    mvc_client = MvcClient(project_key=project_key)
+
     np.random.seed(40)
 
     # Read the wine-quality csv file from filesystem
@@ -41,8 +30,7 @@ if __name__ == "__main__":
     # Also attach the input artifacts to this run
     artifact_ref_name = "wine quality red cleaned" if use_cleaned_data else "wine quality red raw data"
     artifact_ref = ArtifactRef(name=artifact_ref_name, version=1)
-    run = mvc_client.start_new_run(project_key=project_key,
-                                   experiment_key=experiment_key,
+    run = mvc_client.start_new_run(experiment_key=experiment_key,
                                    run_name="training",
                                    used_artifacts=[artifact_ref])
 
@@ -54,11 +42,6 @@ if __name__ == "__main__":
     test_x = test.drop(["quality"], axis=1)
     train_y = train[["quality"]]
     test_y = test[["quality"]]
-
-    alpha_input = input("alpha (default: 0.5): ")
-    l1_ratio_input = input("l1 ration (default: 0.5): ")
-    alpha = float(alpha_input) if len(alpha_input) > 0 else 0.5
-    l1_ratio = float(l1_ratio_input) if len(l1_ratio_input) > 0 else 0.5
 
     # Train/fit the model
     lr = ElasticNet(alpha=alpha, l1_ratio=l1_ratio, random_state=42)
@@ -88,3 +71,13 @@ if __name__ == "__main__":
     ##########################
     # Set the run as completed
     run.set_completed_status()
+
+
+if __name__ == "__main__":
+    p = get_project_key()
+    e = get_experiment_key()
+    cleaned = choose_between_cleaned_and_raw_data()
+    a = get_alpha()
+    l1 = get_l1_ratio()
+
+    run_training(p, e, cleaned, a, l1)

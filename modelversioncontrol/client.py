@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 from ._api_client import AuthenticatedClient
 from .active_run import ActiveRun
-from .artifact_ref import ArtifactRef
+from .active_artifact import ActiveArtifact
+from .model import ArtifactRef
 
 
 @dataclass
@@ -43,8 +44,13 @@ class MvcOptions:
 class MvcClient:
     __options: MvcOptions
     __api_client: AuthenticatedClient
+    __project_key: str
 
-    def __init__(self, options: MvcOptions = None):
+    def __init__(self, project_key: str, options: MvcOptions = None):
+        if project_key is None:
+            raise ValueError("project key must be not None")
+        self.__project_key = project_key
+
         if options is None:
             self.__options = MvcClient.__get_default_options()
         else:
@@ -54,11 +60,14 @@ class MvcClient:
                                                 api_key=self.__options.api_key)
 
     def start_new_run(self,
-                      project_key: str,
                       experiment_key: str = None,
                       run_name: str = None,
                       used_artifacts: List[ArtifactRef] = None) -> ActiveRun:
-        return ActiveRun(self.__api_client, project_key, experiment_key, run_name, used_artifacts)
+        return ActiveRun(self.__api_client, self.__project_key, experiment_key, run_name, used_artifacts)
+
+    def get_artifact(self, artifact_name: str, artifact_version: str) -> ActiveArtifact:
+        return ActiveArtifact(self.__api_client, self.__project_key, artifact_name, artifact_version)
+
 
     @staticmethod
     def __get_default_options() -> MvcOptions:

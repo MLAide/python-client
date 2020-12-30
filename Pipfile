@@ -18,6 +18,8 @@ numpy = "*"
 python-dateutil = "*"
 httpx = "==0.14.3"
 cloudpickle = "*"
+dataclasses-json = "*"
+marshmallow = "*"
 
 [requires]
 python_version = "3.8"

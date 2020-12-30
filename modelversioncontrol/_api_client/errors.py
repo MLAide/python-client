@@ -1,5 +1,5 @@
 from httpx import Response
-from modelversioncontrol._api_client.models.error import Error
+from modelversioncontrol._api_client.dto import Error
 
 
 class ApiResponseError(Exception):
