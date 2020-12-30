@@ -7,12 +7,11 @@ from parameters import get_project_key, get_experiment_key
 
 def run_ingest(project_key: str, experiment_key: str):
     # create mvc client
-    mvc_client = MvcClient()
+    mvc_client = MvcClient(project_key=project_key)
 
     ##################
     # Create a new run
-    run = mvc_client.start_new_run(project_key=project_key,
-                                   experiment_key=experiment_key,
+    run = mvc_client.start_new_run(experiment_key=experiment_key,
                                    run_name="data ingest")
 
     # Read the wine-quality csv file from the URL and store on local filesystem

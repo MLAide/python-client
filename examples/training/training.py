@@ -1,12 +1,10 @@
-import os
-
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-from modelversioncontrol.artifact_ref import ArtifactRef
+from modelversioncontrol.model import ArtifactRef
 from modelversioncontrol.client import MvcClient
 from parameters import *
 
@@ -20,7 +18,7 @@ def eval_metrics(actual, pred):
 
 def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, alpha: float, l1_ratio: float):
     # create mvc client
-    mvc_client = MvcClient()
+    mvc_client = MvcClient(project_key=project_key)
 
     np.random.seed(40)
 
@@ -32,8 +30,7 @@ def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, 
     # Also attach the input artifacts to this run
     artifact_ref_name = "wine quality red cleaned" if use_cleaned_data else "wine quality red raw data"
     artifact_ref = ArtifactRef(name=artifact_ref_name, version=1)
-    run = mvc_client.start_new_run(project_key=project_key,
-                                   experiment_key=experiment_key,
+    run = mvc_client.start_new_run(experiment_key=experiment_key,
                                    run_name="training",
                                    used_artifacts=[artifact_ref])
 
@@ -79,8 +76,8 @@ def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, 
 if __name__ == "__main__":
     p = get_project_key()
     e = get_experiment_key()
-    use_cleaned_data = choose_between_cleaned_and_raw_data()
-    alpha = get_alpha()
-    l1_ratio = get_l1_ratio()
+    cleaned = choose_between_cleaned_and_raw_data()
+    a = get_alpha()
+    l1 = get_l1_ratio()
 
-    run_training(p, e, use_cleaned_data, alpha, l1_ratio)
+    run_training(p, e, cleaned, a, l1)

@@ -1,17 +1,9 @@
-from modelversioncontrol.run import Run, RunStatus
 from . import _model_serializer
-from .artifact import Artifact
-from .artifact_ref import ArtifactRef
 from ._api_client import Client
 from ._api_client.api import runs as runs_client, artifacts as artifacts_client
-from ._api_client.models import \
-    Artifact as ArtifactDto, \
-    ArtifactRef as ArtifactRefDto, \
-    ExperimentRef as ExperimentRefDto, \
-    Run as RunDto, \
-    Status as RunStatusDto, \
-    Error as ErrorDto
-from ._api_client.errors import ApiResponseError
+from ._api_client.dto import ArtifactDto, ArtifactRefDto, ExperimentRefDto, RunDto, StatusDto, Error
+from .model import Artifact, ArtifactRef, Run, RunStatus
+
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from io import BytesIO
@@ -48,20 +40,14 @@ class ActiveRun(object):
             name=run_name,
             parameters=None,
             start_time=None,
-            status=RunStatusDto.RUNNING,
+            status=StatusDto.RUNNING,
             used_artifacts=self.__map_artifact_refs(used_artifacts)
         )
-        try:
-            created_run: Union[RunDto, ErrorDto] = runs_client.create_run(
-                client=self.__api_client,
-                project_key=self.__project_key,
-                json_body=run_to_create
-            )
-        except ApiResponseError as error:
-            print(error)
-            print(error.response.status_code)
-            print(error.response.json())
-            raise
+        created_run: Union[RunDto, Error] = runs_client.create_run(
+            client=self.__api_client,
+            project_key=self.__project_key,
+            json_body=run_to_create
+        )
 
         return Run(
             name=created_run.name,
@@ -150,7 +136,6 @@ class ActiveRun(object):
 
     @staticmethod
     def __extract_filename(file: Union[str, BytesIO]) -> str:
-        print(file)
         if isinstance(file, str):
             return relpath(file)
 
@@ -191,7 +176,7 @@ class ActiveRun(object):
             project_key=self.__project_key,
             run_key=self.__run.key,
             json_body=RunDto(
-                status=RunStatusDto(status.name)
+                status=StatusDto(status.name)
             )
         )
         return self.__run

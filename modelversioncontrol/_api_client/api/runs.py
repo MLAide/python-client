@@ -4,11 +4,10 @@ import httpx
 
 from ..client import Client
 from ..errors import ApiResponseError
-from ..models.error import Error
-from ..models.run import Run
+from ..dto import Error, RunDto
 
 
-def list_runs(*, client: Client, project_key: str) -> Run:
+def list_runs(*, client: Client, project_key: str) -> RunDto:
 
     url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)
 
@@ -17,12 +16,12 @@ def list_runs(*, client: Client, project_key: str) -> Run:
     response = httpx.get(url=url, headers=headers,)
 
     if response.status_code == 200:
-        return Run.from_dict(cast(Dict[str, Any], response.json()))
+        return RunDto.from_dict(cast(Dict[str, Any], response.json()))
     else:
         raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def create_run(*, client: Client, project_key: str, json_body: Run) -> Run:
+def create_run(*, client: Client, project_key: str, json_body: RunDto) -> RunDto:
 
     url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)
 
@@ -33,12 +32,12 @@ def create_run(*, client: Client, project_key: str, json_body: Run) -> Run:
     response = httpx.post(url=url, headers=headers, json=json_json_body,)
 
     if response.status_code == 200:
-        return Run.from_dict(cast(Dict[str, Any], response.json()))
+        return RunDto.from_dict(cast(Dict[str, Any], response.json()))
     else:
         raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
 
 
-def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: Run) -> None:
+def partial_update_run(*, client: Client, project_key: str, run_key: int, json_body: RunDto) -> None:
 
     url = "{}/projects/{projectKey}/runs/{runKey}".format(
         client.base_url, projectKey=project_key, runKey=run_key
