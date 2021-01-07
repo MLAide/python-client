@@ -46,7 +46,7 @@ class ActiveRun(object):
         created_run: Union[RunDto, Error] = runs_client.create_run(
             client=self.__api_client,
             project_key=self.__project_key,
-            json_body=run_to_create
+            run=run_to_create
         )
 
         return Run(
@@ -175,7 +175,7 @@ class ActiveRun(object):
             client=self.__api_client,
             project_key=self.__project_key,
             run_key=self.__run.key,
-            json_body=RunDto(
+            run=RunDto(
                 status=StatusDto(status.name)
             )
         )

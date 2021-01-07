@@ -1,5 +1,5 @@
 from dataclasses import field
-from dataclasses_json import config
+from dataclasses_json import config, DataClassJsonMixin
 from datetime import datetime
 from dateutil.parser import isoparse
 from marshmallow import fields
@@ -23,3 +23,11 @@ def datetime_field():
             mm_field=fields.DateTime(format='iso')
         )
     )
+
+
+class ExtendedDtoSerializer(DataClassJsonMixin):
+    def to_dict_without_none_values(self):
+        d = self.to_dict()
+
+        # Remove values from dict that are None
+        return {k: v for k, v in d.items() if v is not None}

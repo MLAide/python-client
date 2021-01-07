@@ -6,7 +6,7 @@ The shell scripts can be used for easier usage.
 
 Run the following commands once in a terminal session
 ```shell script
-cd examples/
+cs/
 source ./set_api_key.sh
 ```
 
