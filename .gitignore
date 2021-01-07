@@ -11,6 +11,10 @@ dist/
 examples/**/*.csv
 examples/**/*.txt
 examples/**/*.pkl
+!examples/house_prices/data/test.csv
+!examples/house_prices/data/train.csv
+!examples/house_prices/data/sample_submission.csv
+!examples/house_prices/data/USA_Housing.csv
 
 # Log files
 *.log
