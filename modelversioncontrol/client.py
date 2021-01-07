@@ -68,7 +68,6 @@ class MvcClient:
     def get_artifact(self, artifact_name: str, artifact_version: str) -> ActiveArtifact:
         return ActiveArtifact(self.__api_client, self.__project_key, artifact_name, artifact_version)
 
-
     @staticmethod
     def __get_default_options() -> MvcOptions:
         options = MvcOptions()
