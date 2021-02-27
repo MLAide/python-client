@@ -1,4 +1,4 @@
-# Python SDK - ML Aide
+# Python Client Library for ML Aide
 
 ## Run example scripts
 In `examples/` you can find some python scripts as an example.
