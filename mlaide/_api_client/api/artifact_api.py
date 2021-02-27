@@ -37,7 +37,7 @@ def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto) 
         method="POST",
         url=url,
         headers=headers,
-        json=artifact.to_dict()
+        json=artifact.to_dict_without_none_values()
     )
 
     if response.status_code == 200:

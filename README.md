@@ -1,4 +1,4 @@
-# Python SDK - Model Version Control
+# Python SDK - ML Aide
 
 ## Run example scripts
 In `examples/` you can find some python scripts as an example.
@@ -35,9 +35,15 @@ or [Visual Studio Code](https://code.visualstudio.com/)
     pipenv shell
     ```
 
-### Run Test
+### Run Tests
 ```
-python setup.py pytest
+pytest
+```
+
+### Run Tests with Coverage
+```
+coverage run --branch --source mlaide -m pytest
+coverage html
 ```
 
 ### Build

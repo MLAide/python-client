@@ -1,7 +1,7 @@
 import shutil
 import urllib.request
 
-from modelversioncontrol.client import MvcClient
+from mlaide.client import MvcClient
 from parameters import get_project_key, get_experiment_key
 
 
@@ -24,7 +24,7 @@ def run_ingest(project_key: str, experiment_key: str):
     metadata = {
         "source": csv_url
     }
-    artifact = run.create_artifact(name="wine quality red raw data", type="dataset", metadata=metadata)
+    artifact = run.create_artifact(name="wine quality red raw data", artifact_type="dataset", metadata=metadata)
     run.add_artifact_file(artifact, './winequality-red.csv')
 
     ##########################

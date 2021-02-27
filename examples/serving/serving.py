@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import ElasticNet
 from typing import Union
 
-from modelversioncontrol.client import MvcClient
+from mlaide.client import MvcClient
 
 
 def start_serving(project_key: str, artifact_name: str, artifact_version: Union[str, int]):

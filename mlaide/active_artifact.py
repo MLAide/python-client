@@ -1,6 +1,6 @@
 from . import mapper
 from ._api_client import Client
-from ._api_client.api import artifacts
+from ._api_client.api import artifact_api
 from .model import Artifact
 
 from dataclasses import replace
@@ -10,6 +10,8 @@ from zipfile import ZipFile
 
 
 class ActiveArtifact(object):
+    """This class provides access to artifacts that are stored in ML Aide"""
+
     __api_client: Client
     __project_key: str
     __artifact: Artifact
@@ -25,11 +27,11 @@ class ActiveArtifact(object):
         self.__artifact = self.__load_artifact(artifact_name, artifact_version)
 
     def __load_artifact(self, artifact_name: str, artifact_version: Union[str, int]) -> Artifact:
-        artifact_dto = artifacts.get_artifact(client=self.__api_client,
-                                              project_key=self.__project_key,
-                                              artifact_name=artifact_name,
-                                              artifact_version=artifact_version)
-        return mapper.from_artifact_dto(artifact_dto)
+        artifact_dto = artifact_api.get_artifact(client=self.__api_client,
+                                                 project_key=self.__project_key,
+                                                 artifact_name=artifact_name,
+                                                 artifact_version=artifact_version)
+        return mapper.dto_to_artifact(artifact_dto)
 
     @property
     def artifact(self) -> Artifact:
@@ -37,6 +39,13 @@ class ActiveArtifact(object):
         return replace(self.__artifact)
 
     def load(self, filename: str) -> BytesIO:
+        """Load a specific file of this artifact into memory
+
+        Arguments:
+            filename: The name of the file that should be loaded
+        """
+
+        # TODO: Do not download whole zip; instead download just the single file
         zip_bytes, zip_filename = self.__download_zip()
         with ZipFile(zip_bytes) as z:
             zip_info = z.infolist()
@@ -45,8 +54,14 @@ class ActiveArtifact(object):
                 return BytesIO(zip_file.read())
 
     def download(self, target_directory: str):
+        """Downloads all files of this artifact and stores them into the specified directory.
+
+        Arguments:
+            target_directory: The path to the directory where all files should be stored.
+        """
+
         # download
-        artifact_bytes, filename = self.__download_zip()
+        artifact_bytes = self.__download_zip()
 
         # unzip and write to disk
         with ZipFile(artifact_bytes) as z:
@@ -54,9 +69,9 @@ class ActiveArtifact(object):
 
     def __download_zip(self) -> (BytesIO, str):
         if self.__cached_zip is None:
-            self.__cached_zip = artifacts.download_artifact(client=self.__api_client,
-                                                            project_key=self.__project_key,
-                                                            artifact_name=self.__artifact.name,
-                                                            artifact_version=self.__artifact.version)
+            self.__cached_zip = artifact_api.download_artifact(client=self.__api_client,
+                                                               project_key=self.__project_key,
+                                                               artifact_name=self.__artifact.name,
+                                                               artifact_version=self.__artifact.version)
 
         return self.__cached_zip

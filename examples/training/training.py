@@ -4,8 +4,8 @@ from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-from modelversioncontrol.model import ArtifactRef
-from modelversioncontrol.client import MvcClient
+from mlaide.model import ArtifactRef
+from mlaide.client import MvcClient
 from parameters import *
 
 

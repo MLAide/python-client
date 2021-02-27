@@ -7,20 +7,6 @@ from ..errors import ApiResponseError
 from ..dto import Error, RunDto
 
 
-def list_runs(*, client: Client, project_key: str) -> RunDto:
-
-    url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)
-
-    headers: Dict[str, Any] = client.get_headers()
-
-    response = httpx.get(url=url, headers=headers,)
-
-    if response.status_code == 200:
-        return RunDto.from_dict(cast(Dict[str, Any], response.json()))
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
-
-
 def create_run(*, client: Client, project_key: str, run: RunDto) -> RunDto:
 
     url = "{}/projects/{projectKey}/runs".format(client.base_url, projectKey=project_key)

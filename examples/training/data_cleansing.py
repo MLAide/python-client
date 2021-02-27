@@ -1,7 +1,7 @@
 import pandas as pd
 
-from modelversioncontrol.model import ArtifactRef
-from modelversioncontrol.client import MvcClient
+from mlaide.model import ArtifactRef
+from mlaide.client import MvcClient
 
 from parameters import get_project_key, get_experiment_key
 
@@ -28,7 +28,7 @@ def run_cleansing(project_key: str, experiment_key: str):
     metadata = {
         "description": "removed each second row"
     }
-    artifact = run.create_artifact(name="wine quality red cleaned", type="dataset", metadata=metadata)
+    artifact = run.create_artifact(name="wine quality red cleaned", artifact_type="dataset", metadata=metadata)
     run.add_artifact_file(artifact, './cleaned.csv')
     run.add_artifact_file(artifact, './sub/data.txt')
 

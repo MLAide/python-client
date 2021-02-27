@@ -2,7 +2,7 @@ from parameters import get_project_key, get_experiment_key, get_alpha, get_l1_ra
 from data_ingest import run_ingest
 from data_cleansing import run_cleansing
 from training import run_training
-from modelversioncontrol._api_client.errors import ApiResponseError
+from mlaide._api_client.errors import ApiResponseError
 
 import traceback
 

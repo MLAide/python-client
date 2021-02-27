@@ -1,8 +1,9 @@
 from . import _model_serializer
 from ._api_client import Client
-from ._api_client.api import runs as runs_client, artifacts as artifacts_client
-from ._api_client.dto import ArtifactDto, ArtifactRefDto, ExperimentRefDto, RunDto, StatusDto, Error
+from ._api_client.api import run_api, artifact_api
+from ._api_client.dto import ArtifactDto, RunDto, StatusDto
 from .model import Artifact, ArtifactRef, Run, RunStatus
+from .mapper import dto_to_run, run_to_dto, dto_to_artifact
 
 from datetime import datetime
 from typing import Dict, List, Optional, Union
@@ -12,6 +13,8 @@ from os.path import relpath
 
 
 class ActiveRun(object):
+    """This class provides access to runs that are stored in ML Aide"""
+
     __api_client: Client
     __run: Run
     __project_key: str
@@ -30,38 +33,16 @@ class ActiveRun(object):
                          experiment_key: str = None,
                          run_name: str = None,
                          used_artifacts: List[ArtifactRef] = None) -> Run:
-        run_to_create = RunDto(
-            created_at=None,
-            created_by=None,
-            end_time=None,
-            experiment_refs=[ExperimentRefDto(experiment_key)] if experiment_key is not None else None,
-            key=None,
-            metrics=None,
-            name=run_name,
-            parameters=None,
-            start_time=None,
-            status=StatusDto.RUNNING,
-            used_artifacts=self.__map_artifact_refs(used_artifacts)
-        )
-        created_run: Union[RunDto, Error] = runs_client.create_run(
+        run = Run(name=run_name)
+        run_to_create = run_to_dto(run, experiment_key, used_artifacts)
+
+        created_run: RunDto = run_api.create_run(
             client=self.__api_client,
             project_key=self.__project_key,
             run=run_to_create
         )
 
-        return Run(
-            name=created_run.name,
-            status=RunStatus[created_run.status.name],
-            parameters={} if created_run.parameters is None else created_run.parameters,
-            metrics={} if created_run.metrics is None else created_run.metrics,
-            start_time=created_run.start_time,
-            end_time=created_run.end_time,
-            key=created_run.key,
-        )
-
-    @staticmethod
-    def __map_artifact_refs(artifacts: List[ArtifactRef] = None):
-        return list(map(lambda a: ArtifactRefDto(name=a.name, version=a.version), artifacts)) if artifacts else None
+        return dto_to_run(created_run)
 
     @property
     def run(self) -> Run:
@@ -77,8 +58,14 @@ class ActiveRun(object):
         )
 
     def log_metric(self, key: str, value) -> Run:
+        """Logs a metric
+
+        Arguments:
+            key: The key of the metric.
+            value: The value of the metric. The value can be any type that is JSON serializable.
+        """
         self.__run.metrics[key] = value
-        runs_client.update_run_metrics(
+        run_api.update_run_metrics(
             client=self.__api_client,
             project_key=self.__project_key,
             run_key=self.__run.key,
@@ -86,8 +73,14 @@ class ActiveRun(object):
         return self.__run
 
     def log_parameter(self, key: str, value) -> Run:
+        """Logs a parameter
+
+        Arguments:
+            key: The key of the parameter.
+            value: The value of the parameter. The value must be a scalar value (e.g. string, int, float, ...).
+        """
         self.__run.parameters[key] = value
-        runs_client.update_run_parameters(
+        run_api.update_run_parameters(
             client=self.__api_client,
             project_key=self.__project_key,
             run_key=self.__run.key,
@@ -95,38 +88,53 @@ class ActiveRun(object):
         return self.__run
 
     def log_model(self, model, model_name: str, metadata: Optional[Dict[str, str]] = None):
+        """Creates a new artifact with type 'model'. The artifact will be registered as model.
+
+        Arguments:
+            model: The model. The model must be serializable.
+            model_name: The name of the model. The name will be used as artifact filename.
+            metadata: Some optional metadata that will be attached to the artifact.
+        """
         serialized_model = _model_serializer.serialize(model)
 
-        artifact = self.create_artifact(name=model_name, type='model', metadata=metadata)
+        artifact = self.create_artifact(name=model_name, artifact_type='model', metadata=metadata)
         self.add_artifact_file(artifact=artifact, file=serialized_model, filename='model.pkl')
 
-        artifacts_client.create_model(
+        artifact_api.create_model(
             client=self.__api_client,
             project_key=self.__project_key,
             artifact_name=artifact.name,
             artifact_version=artifact.version)
 
-    def create_artifact(self, name: str, type: str, metadata: Optional[Dict[str, str]]) -> Artifact:
-        artifact_dto = ArtifactDto(name=name, type=type, metadata=metadata)
-        artifact_dto.run_key = self.__run.key
+    def create_artifact(self, name: str, artifact_type: str, metadata: Optional[Dict[str, str]]) -> Artifact:
+        """Creates a new artifact. If an artifact with the same name already exists, a new artifact with the
+        next available version number will be registered.
 
-        artifact_dto = artifacts_client.create_artifact(
+        Arguments:
+            name: The name of the artifact.
+            artifact_type: The artifact type.
+            metadata: Some optional metadata that will be attached to the artifact.
+        """
+        artifact_dto = ArtifactDto(name=name, type=artifact_type, metadata=metadata, run_key=self.__run.key)
+
+        artifact_dto = artifact_api.create_artifact(
             client=self.__api_client,
             project_key=self.__project_key,
             artifact=artifact_dto)
 
-        return Artifact(
-            created_at=artifact_dto.created_at,
-            name=artifact_dto.name,
-            metadata=artifact_dto.metadata,
-            run_key=artifact_dto.run_key,
-            run_name=artifact_dto.run_name,
-            type=artifact_dto.type,
-            updated_at=artifact_dto.updated_at,
-            version=artifact_dto.version)
+        return dto_to_artifact(artifact_dto)
 
     def add_artifact_file(self, artifact: Artifact, file: Union[str, BytesIO], filename: str = None):
-        artifacts_client.upload_file(
+        """Add a file to an existing artifact. To add multiple file, specify a directory or invoke this function
+        multiple times.
+
+        Arguments:
+            artifact: The artifact to which the file should be added.
+            file: The file that should be added. This can be a io.BytesIO object or a string to a file or directory.
+            filename: The filename. If the file is of type BytesIO the filename must be specified. If the file is a
+                string, the original filename will be the default.
+        """
+        artifact_api.upload_file(
             client=self.__api_client,
             project_key=self.__project_key,
             artifact_name=artifact.name,
@@ -171,7 +179,7 @@ class ActiveRun(object):
     def _set_status(self, status: RunStatus) -> Run:
         self.__run.end_time = datetime.now()
         self.__run.status = status
-        runs_client.partial_update_run(
+        run_api.partial_update_run(
             client=self.__api_client,
             project_key=self.__project_key,
             run_key=self.__run.key,

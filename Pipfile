@@ -9,17 +9,20 @@ wheel = "*"
 freezegun = "*"
 setuptools = "*"
 openapi-python-client = "*"
-modelversioncontrol = {editable = true, path = "."}
 scikit-learn = "*"
 pandas = "*"
 numpy = "*"
+pytest-mock = "*"
+coverage = "*"
+pytest-httpx = "*"
 
 [packages]
 python-dateutil = "*"
-httpx = "==0.14.3"
+httpx = "*"
 cloudpickle = "*"
 dataclasses-json = "*"
 marshmallow = "*"
+mlaide = {editable = true, path = "."}
 
 [requires]
 python_version = "3.8"
