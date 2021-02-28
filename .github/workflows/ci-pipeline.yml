@@ -30,7 +30,7 @@ jobs:
       run: |
         poetry run pytest
         poetry run coverage run --branch --source mlaide -m pytest
-        poetry run coverage xml -o coverage-reports/coverage.xml
+        poetry run coverage xml
     - name: Build Python Wheel
       run: poetry build
     - name: Archive artifacts
@@ -44,7 +44,7 @@ jobs:
         name: code-coverage-report
         path: |
           .coverage
-          coverage-reports/coverage.xml
+          coverage.xml
   sonar-scan:
     runs-on: ubuntu-latest
     needs: build
