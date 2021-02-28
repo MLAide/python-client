@@ -72,7 +72,7 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
                                             project_key='project key',
                                             run=run_to_dto_mock.return_value)
 
-    run_to_create: Run = run_to_dto_mock.call_args.args[0]
+    run_to_create: Run = run_to_dto_mock.call_args[0][0]
     assert run_to_create.name == 'run name'
 
     run_to_dto_mock.assert_called_once_with(run_to_create, 'exp key', used_artifact)
