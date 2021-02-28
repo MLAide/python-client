@@ -64,8 +64,10 @@ jobs:
       - build
     steps:
     - uses: actions/checkout@v2
-    - name: Download build artifacts
+    - name: Download coverage result
       uses: actions/download-artifact@v2
+      with:
+        name: code-coverage-report
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
