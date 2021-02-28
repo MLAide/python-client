@@ -6,6 +6,7 @@ venv/
 *.py[cod]
 htmlcov/
 .coverage
+coverage.xml
 
 # Project specific
 build/
