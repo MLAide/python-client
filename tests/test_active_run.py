@@ -1,5 +1,6 @@
 from pytest_mock.plugin import MockerFixture
 from datetime import datetime
+from os import path
 import pytest
 import io
 
@@ -203,7 +204,7 @@ def test_add_artifact_file_of_type_str_should_read_file_from_disc_and_upload_it(
                                                                                 artifact_api_mock,
                                                                                 mocker: MockerFixture):
     # arrange
-    file_path = 'path/to/file.txt'
+    file_path = path.normpath('path/to/file.txt')
     file_bytes = bytes('foo', 'utf-8')
     file = io.BytesIO(file_bytes)
     artifact = Artifact(name='artifact name', version=23)
