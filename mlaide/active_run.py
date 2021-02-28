@@ -33,7 +33,7 @@ class ActiveRun(object):
                          experiment_key: str = None,
                          run_name: str = None,
                          used_artifacts: List[ArtifactRef] = None) -> Run:
-        run = Run(name=run_name)
+        run = Run(name=run_name, status=RunStatus.RUNNING)
         run_to_create = run_to_dto(run, experiment_key, used_artifacts)
 
         created_run: RunDto = run_api.create_run(

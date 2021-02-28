@@ -11,9 +11,9 @@ class Artifact(object):
     files: Optional[Collection[ArtifactFile]] = None
     metadata: Optional[Dict[str, str]] = None
     model: Optional[Model] = None
-    name: str = None
+    name: Optional[str] = None
     run_key: Optional[int] = None
     run_name: Optional[str] = None
-    type: str = None
+    type: Optional[str] = None
     updated_at: datetime = None
     version: Optional[int] = None

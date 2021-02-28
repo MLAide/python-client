@@ -9,24 +9,24 @@ from .helper import datetime_field, ExtendedDtoSerializer
 @dataclass_json(letter_case=LetterCase.CAMEL, undefined=Undefined.EXCLUDE)
 @dataclass
 class ArtifactFileDto:
-    fileId: str
-    fileName: str
+    file_id: str
+    file_name: str
 
 
 @dataclass
 class ModelRevisionDto(object):
-    newStage: str
-    oldStage: str
+    new_stage: str
+    old_stage: str
     created_at: Optional[datetime] = datetime_field()
     created_by: Optional[Dict[Any, Any]] = None
-    note: str = None
+    note: Optional[str] = None
 
 
 @dataclass
 class ModelDto(object):
     created_at: Optional[datetime] = datetime_field()
     created_by: Optional[Dict[Any, Any]] = None
-    modelRevisions: Optional[List[ModelRevisionDto]] = None
+    model_revisions: Optional[List[ModelRevisionDto]] = None
     metadata: Optional[Dict[str, str]] = None
     stage: Optional[str] = None
     updated_at: Optional[datetime] = datetime_field()

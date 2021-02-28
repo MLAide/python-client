@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
 from dataclasses import dataclass, field
 
 
@@ -12,10 +12,10 @@ class RunStatus(str, Enum):
 
 @dataclass
 class Run(object):
-    key: int = None
-    name: str = None
+    key: Optional[int] = None
+    name: Optional[str] = None
     start_time: datetime = None
     end_time: datetime = None
-    status: RunStatus = None
+    status: Optional[RunStatus] = None
     metrics: Dict[str, any] = field(default_factory=dict)
     parameters: Dict[str, str] = field(default_factory=dict)

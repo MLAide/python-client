@@ -15,18 +15,18 @@ class ModelStage(Enum):
 
 @dataclass
 class ModelRevision(object):
-    newStage: ModelStage
-    oldStage: ModelStage
-    created_at: datetime = None
+    new_stage: ModelStage
+    old_stage: ModelStage
+    created_at: Optional[datetime] = None
     created_by: Optional[UserRef] = None
-    note: str = None
+    note: Optional[str] = None
 
 
 @dataclass
 class Model(object):
-    created_at: datetime = None
+    created_at: Optional[datetime] = None
     created_by: Optional[UserRef] = None
-    modelRevisions: Optional[Collection[ModelRevision]] = None
+    model_revisions: Optional[Collection[ModelRevision]] = None
     metadata: Optional[Dict[str, str]] = None
     stage: Optional[ModelStage] = None
-    updated_at: datetime = None
+    updated_at: Optional[datetime] = None

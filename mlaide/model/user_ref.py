@@ -3,5 +3,5 @@ from dataclasses import dataclass
 
 @dataclass
 class UserRef(object):
-    userId: str
-    nickName: str
+    user_id: str
+    nick_name: str

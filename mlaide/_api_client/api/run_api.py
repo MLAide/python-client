@@ -6,6 +6,8 @@ from ..client import Client
 from ..errors import ApiResponseError
 from ..dto import Error, RunDto
 
+content_type_merge_patch = 'application/merge-patch+json'
+
 
 def create_run(*, client: Client, project_key: str, run: RunDto) -> RunDto:
 
@@ -30,7 +32,7 @@ def partial_update_run(*, client: Client, project_key: str, run_key: int, run: R
     )
 
     headers: Dict[str, Any] = client.get_headers()
-    headers["content-type"] = "application/merge-patch+json"
+    headers["content-type"] = content_type_merge_patch
 
     json_body = run.to_dict_without_none_values()
 
@@ -49,7 +51,7 @@ def update_run_parameters(*, client: Client, project_key: str, run_key: int, par
     )
 
     headers: Dict[str, Any] = client.get_headers()
-    headers["content-type"] = "application/merge-patch+json"
+    headers["content-type"] = content_type_merge_patch
 
     response = httpx.patch(url=url, headers=headers, json=parameters)
 
@@ -66,7 +68,7 @@ def update_run_metrics(*, client: Client, project_key: str, run_key: int, metric
     )
 
     headers: Dict[str, Any] = client.get_headers()
-    headers["content-type"] = "application/merge-patch+json"
+    headers["content-type"] = content_type_merge_patch
 
     response = httpx.patch(url=url, headers=headers, json=metrics)
 

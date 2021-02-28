@@ -4,10 +4,6 @@ from ._api_client.dto import ArtifactDto, ArtifactRefDto, ExperimentRefDto, RunD
 from typing import List, Optional
 
 
-def to_artifact_dto(artifact: Artifact) -> ArtifactDto:
-    pass
-
-
 def dto_to_artifact(artifact_dto: ArtifactDto) -> Artifact:
     return Artifact(
         created_at=artifact_dto.created_at,

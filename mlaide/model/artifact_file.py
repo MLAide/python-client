@@ -3,5 +3,5 @@ from dataclasses import dataclass
 
 @dataclass
 class ArtifactFile(object):
-    fileId: str
-    fileName: str
+    file_id: str
+    file_name: str

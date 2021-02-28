@@ -31,4 +31,3 @@ def serialize(model) -> io.BytesIO:
         #     bytestream = tempf
         #     method = "keras"
         #     break
-    pass

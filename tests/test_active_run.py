@@ -212,8 +212,8 @@ def test_add_artifact_file_of_type_str_should_read_file_from_disc_and_upload_it(
     path_mock.return_value.is_file.return_value = True
     path_mock.return_value.read_bytes.return_value = file_bytes
 
-    bytesIO_mock = mocker.patch('mlaide.active_run.BytesIO')
-    bytesIO_mock.return_value = file
+    bytes_io_mock = mocker.patch('mlaide.active_run.BytesIO')
+    bytes_io_mock.return_value = file
 
     # act
     active_run.add_artifact_file(artifact, file_path)
@@ -226,7 +226,7 @@ def test_add_artifact_file_of_type_str_should_read_file_from_disc_and_upload_it(
                                                           filename=file_path,
                                                           file=file)
     path_mock.assert_called_once_with(file_path)
-    bytesIO_mock.assert_called_once_with(file_bytes)
+    bytes_io_mock.assert_called_once_with(file_bytes)
 
 
 def test_set_completed_status_should_set_status_and_end_time_in_run(active_run, mocker: MockerFixture):
