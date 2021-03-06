@@ -1,0 +1,16 @@
+name: release version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: dist
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "dist/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
