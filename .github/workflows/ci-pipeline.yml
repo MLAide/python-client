@@ -62,7 +62,7 @@ jobs:
     - name: Install dependencies
       run: poetry install
     - name: Set version
-      run: poetry version "${{ steps.set-version.version }}"
+      run: poetry version ${{ steps.set-version.outputs.version }}
     - name: Build Python Wheel
       run: poetry build
     - name: Archive artifacts
