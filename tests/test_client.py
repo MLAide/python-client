@@ -1,7 +1,7 @@
 from pytest_mock.plugin import MockerFixture
 import pytest
 
-from mlaide.client import MvcClient, MvcOptions
+from mlaide.client import MLAideClient, ConnectionOptions
 
 
 @pytest.fixture
@@ -22,38 +22,38 @@ def mock_active_artifact(mocker: MockerFixture):
 def test_init_should_raise_value_error_if_project_key_is_none():
     with pytest.raises(ValueError):
         # noinspection PyTypeChecker
-        MvcClient(None)
+        MLAideClient(None)
 
 
 def test_init_should_use_default_options_if_no_options_provided(monkeypatch):
     # arrange
-    monkeypatch.setenv('MVC_API_KEY', 'the api key')
+    monkeypatch.setenv('MLAIDE_API_KEY', 'the api key')
 
     # act
-    client = MvcClient('project key', options=None)
+    client = MLAideClient('project key', options=None)
 
     # assert
     options = client.options
     assert options.api_key == 'the api key'
-    assert options.mvc_server_url == 'http://localhost:9000/api/v1'
+    assert options.server_url == 'http://localhost:9000/api/v1'
 
 
 def test_init_should_use_merge_provided_options_with_default_options(monkeypatch):
     # arrange
-    monkeypatch.setenv('MVC_API_KEY', 'the api key')
+    monkeypatch.setenv('MLAIDE_API_KEY', 'the api key')
 
     # act
-    client = MvcClient('project key', options=MvcOptions(mvc_server_url='http://my-server.com'))
+    client = MLAideClient('project key', options=ConnectionOptions(server_url='http://my-server.com'))
 
     # assert
     options = client.options
     assert options.api_key == 'the api key'
-    assert options.mvc_server_url == 'http://my-server.com'
+    assert options.server_url == 'http://my-server.com'
 
 
 def test_init_should_create_authenticated_client(mock_authenticated_client):
     # act
-    client = MvcClient('project key', options=MvcOptions(mvc_server_url='http://my-server.com', api_key='the key'))
+    client = MLAideClient('project key', options=ConnectionOptions(server_url='http://my-server.com', api_key='the key'))
 
     # assert
     mock_authenticated_client.assert_called_once_with(base_url='http://my-server.com', api_key='the key')
@@ -63,7 +63,7 @@ def test_init_should_create_authenticated_client(mock_authenticated_client):
 def test_start_new_run_should_instantiate_new_active_run_with_correct_arguments(
         mock_authenticated_client, mock_active_run):
     # arrange
-    client = MvcClient('project key')
+    client = MLAideClient('project key')
     used_artifacts = []
 
     # act
@@ -78,7 +78,7 @@ def test_start_new_run_should_instantiate_new_active_run_with_correct_arguments(
 def test_get_artifact_should_instantiate_new_active_artifact_with_correct_arguments(
         mock_authenticated_client, mock_active_artifact):
     # arrange
-    client = MvcClient('project key')
+    client = MLAideClient('project key')
 
     # act
     active_artifact = client.get_artifact('a name', 'a version')

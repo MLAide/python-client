@@ -3,14 +3,14 @@ import numpy as np
 from sklearn.linear_model import ElasticNet
 from typing import Union
 
-from mlaide.client import MvcClient
+from mlaide.client import MLAideClient
 
 
 def start_serving(project_key: str, artifact_name: str, artifact_version: Union[str, int]):
-    # create mvc client
-    mvc_client = MvcClient(project_key=project_key)
+    # create mlaide client
+    mlaide_client = MLAideClient(project_key=project_key)
 
-    artifact = mvc_client.get_artifact(artifact_name=artifact_name, artifact_version=artifact_version)
+    artifact = mlaide_client.get_artifact(artifact_name=artifact_name, artifact_version=artifact_version)
 
     artifact_bytes = artifact.load('model.pkl')
     artifact_bytes.seek(0)

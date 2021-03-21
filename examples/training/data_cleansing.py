@@ -1,20 +1,20 @@
 import pandas as pd
 
 from mlaide.model import ArtifactRef
-from mlaide.client import MvcClient
+from mlaide.client import MLAideClient
 
 from parameters import get_project_key, get_experiment_key
 
 
 def run_cleansing(project_key: str, experiment_key: str):
-    # create mvc client
-    mvc_client = MvcClient(project_key=project_key)
+    # create mlaide client
+    mlaide_client = MLAideClient(project_key=project_key)
 
     ##################
     # Create a new run
     # Also attach the input artifacts to this run
     artifact_ref = ArtifactRef(name="wine quality red raw data", version=1)
-    run = mvc_client.start_new_run(experiment_key=experiment_key,
+    run = mlaide_client.start_new_run(experiment_key=experiment_key,
                                    run_name="data cleansing",
                                    used_artifacts=[artifact_ref])
 

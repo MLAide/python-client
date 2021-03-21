@@ -4,26 +4,26 @@ import os
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
-from ._api_client import AuthenticatedClient
+from ._api_client import Client, AuthenticatedClient
 from .active_run import ActiveRun
 from .active_artifact import ActiveArtifact
 from .model import ArtifactRef
 
 
 @dataclass
-class MvcOptions:
-    """Specify options for a MvcClient"""
+class ConnectionOptions:
+    """Specify options for a MLAideClient"""
 
-    mvc_server_url: Optional[str]
+    server_url: Optional[str]
     api_key: Optional[str]
 
-    def __init__(self, mvc_server_url: str = None, api_key: str = None):
-        self.mvc_server_url = mvc_server_url
+    def __init__(self, server_url: str = None, api_key: str = None):
+        self.server_url = server_url
         self.api_key = api_key
 
     def to_dict(self) -> Dict[str, Any]:
         d = {
-            "mvc_server_url": self.mvc_server_url,
+            "server_url": self.server_url,
             "api_key": self.api_key
         }
 
@@ -31,28 +31,28 @@ class MvcOptions:
         return {k: v for k, v in d.items() if v is not None}
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> MvcOptions:
+    def from_dict(d: Dict[str, Any]) -> ConnectionOptions:
         if d is None:
             d = dict()
 
-        options = MvcOptions(
-            mvc_server_url=d.get("mvc_server_url", None),
+        options = ConnectionOptions(
+            server_url=d.get("server_url", None),
             api_key=d.get("api_key", None)
         )
 
         return options
 
 
-class MvcClient:
+class MLAideClient:
     """This is the main entry point to use this library. Creates a connection to the ML Aide server and provides
     read and write access to all resources.
     """
 
-    __options: MvcOptions
-    __api_client: AuthenticatedClient
+    __options: ConnectionOptions
+    __api_client: Client
     __project_key: str
 
-    def __init__(self, project_key: str, options: MvcOptions = None):
+    def __init__(self, project_key: str, options: ConnectionOptions = None):
         """Creates a new instance of this class.
 
         Arguments:
@@ -64,11 +64,11 @@ class MvcClient:
         self.__project_key = project_key
 
         if options is None:
-            self.__options = MvcClient.__get_default_options()
+            self.__options = MLAideClient.__get_default_options()
         else:
-            self.__options = MvcClient.__merge_options(MvcClient.__get_default_options(), options)
+            self.__options = MLAideClient.__merge_options(MLAideClient.__get_default_options(), options)
 
-        self.__api_client = AuthenticatedClient(base_url=self.__options.mvc_server_url,
+        self.__api_client = AuthenticatedClient(base_url=self.__options.server_url,
                                                 api_key=self.__options.api_key)
 
     def start_new_run(self,
@@ -96,24 +96,24 @@ class MvcClient:
         return ActiveArtifact(self.__api_client, self.__project_key, artifact_name, artifact_version)
 
     @property
-    def options(self):
+    def options(self) -> ConnectionOptions:
         return self.__options
 
     @property
-    def api_client(self):
+    def api_client(self) -> Client:
         return self.__api_client
 
     @staticmethod
-    def __get_default_options() -> MvcOptions:
-        options = MvcOptions()
-        options.mvc_server_url = 'http://localhost:9000/api/v1'
-        options.api_key = os.environ.get('MVC_API_KEY')
+    def __get_default_options() -> ConnectionOptions:
+        options = ConnectionOptions()
+        options.server_url = 'http://localhost:9000/api/v1'
+        options.api_key = os.environ.get('MLAIDE_API_KEY')
         return options
 
     @staticmethod
-    def __merge_options(target: MvcOptions, source: MvcOptions) -> MvcOptions:
+    def __merge_options(target: ConnectionOptions, source: ConnectionOptions) -> ConnectionOptions:
         merged = dict()
         merged.update(target.to_dict())
         merged.update(source.to_dict())
 
-        return MvcOptions.from_dict(merged)
+        return ConnectionOptions.from_dict(merged)

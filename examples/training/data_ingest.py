@@ -1,17 +1,17 @@
 import shutil
 import urllib.request
 
-from mlaide.client import MvcClient
+from mlaide.client import MLAideClient
 from parameters import get_project_key, get_experiment_key
 
 
 def run_ingest(project_key: str, experiment_key: str):
-    # create mvc client
-    mvc_client = MvcClient(project_key=project_key)
+    # create mlaide client
+    mlaide_client = MLAideClient(project_key=project_key)
 
     ##################
     # Create a new run
-    run = mvc_client.start_new_run(experiment_key=experiment_key,
+    run = mlaide_client.start_new_run(experiment_key=experiment_key,
                                    run_name="data ingest")
 
     # Read the wine-quality csv file from the URL and store on local filesystem

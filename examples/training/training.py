@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
 from mlaide.model import ArtifactRef
-from mlaide.client import MvcClient
+from mlaide.client import MLAideClient
 from parameters import *
 
 
@@ -17,8 +17,8 @@ def eval_metrics(actual, pred):
 
 
 def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, alpha: float, l1_ratio: float):
-    # create mvc client
-    mvc_client = MvcClient(project_key=project_key)
+    # create mlaide client
+    mlaide_client = MLAideClient(project_key=project_key)
 
     np.random.seed(40)
 
@@ -30,7 +30,7 @@ def run_training(project_key: str, experiment_key: str, use_cleaned_data: bool, 
     # Also attach the input artifacts to this run
     artifact_ref_name = "wine quality red cleaned" if use_cleaned_data else "wine quality red raw data"
     artifact_ref = ArtifactRef(name=artifact_ref_name, version=1)
-    run = mvc_client.start_new_run(experiment_key=experiment_key,
+    run = mlaide_client.start_new_run(experiment_key=experiment_key,
                                    run_name="training",
                                    used_artifacts=[artifact_ref])
 

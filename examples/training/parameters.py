@@ -2,7 +2,7 @@ import os
 
 
 def get_project_key():
-    project_key = os.getenv("MVC_PROJECT_KEY")
+    project_key = os.getenv("MLAIDE_PROJECT_KEY")
 
     if project_key is None:
         project_key = input("Enter project key: ")
@@ -11,7 +11,7 @@ def get_project_key():
 
 
 def get_experiment_key():
-    experiment_key = os.getenv("MVC_EXPERIMENT_KEY", None)
+    experiment_key = os.getenv("MLAIDE_EXPERIMENT_KEY", None)
 
     if experiment_key is None:
         experiment_key = input("Enter experiment key: ")
