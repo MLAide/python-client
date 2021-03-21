@@ -3,9 +3,12 @@ name = "mlaide"
 version = "0.1.0-alpha.0"
 description = ""
 authors = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
+maintainers = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
+homepage = "https://mlaide-ai.web.app/home"
 repository = "https://github.com/MLAide/python-client"
+documentation = "https://mlaide.github.io/docs/"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
