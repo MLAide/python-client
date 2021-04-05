@@ -117,7 +117,7 @@ def test_log_model_should_create_an_artifact_and_attach_the_serialized_model_as_
     # arrange
     serialized_model = io.BytesIO(bytes('foo', 'utf-8'))
 
-    model_serializer_mock = mocker.patch('mlaide.active_run._model_serializer')
+    model_serializer_mock = mocker.patch('mlaide.active_run._model_deser')
     model_serializer_mock.serialize.return_value = serialized_model
 
     created_artifact_dto = ArtifactDto()

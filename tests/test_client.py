@@ -1,7 +1,7 @@
 from pytest_mock.plugin import MockerFixture
 import pytest
 
-from mlaide.client import MLAideClient, ConnectionOptions
+from mlaide import MLAideClient, ConnectionOptions, ModelStage
 
 
 @pytest.fixture
@@ -81,9 +81,45 @@ def test_get_artifact_should_instantiate_new_active_artifact_with_correct_argume
     client = MLAideClient('project key')
 
     # act
-    active_artifact = client.get_artifact('a name', 'a version')
+    active_artifact = client.get_artifact('a name', 5)
 
     # assert
     mock_active_artifact.assert_called_once_with(
-        mock_authenticated_client.return_value, 'project key', 'a name', 'a version')
+        mock_authenticated_client.return_value, 'project key', 'a name', 5)
     assert active_artifact == mock_active_artifact.return_value
+
+
+def test_load_model_should_instantiate_new_active_artifact_with_correct_arguments_and_return_result_of_load_model(
+        mock_authenticated_client, mock_active_artifact):
+    # arrange
+    client = MLAideClient('project key')
+    mock_active_artifact.return_value.load_model.return_value = "the deserialized model"
+
+    # act
+    model = client.load_model('model name', 7)
+
+    # assert
+    mock_active_artifact.assert_called_once_with(
+        mock_authenticated_client.return_value, 'project key', 'model name', 7, None)
+    assert model == "the deserialized model"
+
+
+def test_load_model_should_pass_stage_to_active_artifact(mock_authenticated_client, mock_active_artifact):
+    # arrange
+    client = MLAideClient('project key')
+
+    # act
+    client.load_model('model name', stage=ModelStage.PRODUCTION)
+
+    # assert
+    mock_active_artifact.assert_called_once_with(
+        mock_authenticated_client.return_value, 'project key', 'model name', None, ModelStage.PRODUCTION)
+
+
+def test_load_model_should_raise_error_when_version_and_stage_are_defined():
+    # arrange
+    client = MLAideClient('project key')
+
+    # act
+    with pytest.raises(ValueError):
+        client.load_model('model name', version=3, stage=ModelStage.PRODUCTION)

@@ -31,3 +31,7 @@ def serialize(model) -> io.BytesIO:
         #     bytestream = tempf
         #     method = "keras"
         #     break
+
+
+def deserialize(model: io.BytesIO) -> any:
+    return cloudpickle.load(model)

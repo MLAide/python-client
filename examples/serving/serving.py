@@ -10,7 +10,7 @@ def start_serving(project_key: str, artifact_name: str, artifact_version: Union[
     # create mlaide client
     mlaide_client = MLAideClient(project_key=project_key)
 
-    artifact = mlaide_client.get_artifact(artifact_name=artifact_name, artifact_version=artifact_version)
+    artifact = mlaide_client.get_artifact(name=artifact_name, version=artifact_version)
 
     artifact_bytes = artifact.load('model.pkl')
     artifact_bytes.seek(0)

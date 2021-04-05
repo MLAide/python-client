@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from dataclasses import dataclass
 
 from ._api_client import Client, AuthenticatedClient
 from .active_run import ActiveRun
 from .active_artifact import ActiveArtifact
-from .model import ArtifactRef
+from .model import ArtifactRef, ModelStage
 
 
 @dataclass
@@ -75,15 +75,15 @@ class MLAideClient:
                       experiment_key: str = None,
                       run_name: str = None,
                       used_artifacts: List[ArtifactRef] = None) -> ActiveRun:
-        """Creates and starts a new run, that will be assigned to the specified experiment. The run object can be used to \
-        log all necessary information.
+        """Creates and starts a new run, that will be assigned to the specified experiment. The run object can be used
+        to log all necessary information.
 
         Arguments:
-            experiment_key: The key of the experiment, that the new run should be assigned to. If `None` a new, random \
+            experiment_key: The key of the experiment, that the new run should be assigned to. If `None` a new, random
             experiment will be created.
-            run_name: The name of the run. The name helps to identify the run for humans. If `None` a random name will \
+            run_name: The name of the run. The name helps to identify the run for humans. If `None` a random name will
             be used.
-            used_artifacts: An optional list of `ArtifactRef` that references artifacts, that are used as input for \
+            used_artifacts: An optional list of `ArtifactRef` that references artifacts, that are used as input for
             this run. This information will help to create and visualize the experiment lineage.
 
         Returns:
@@ -92,8 +92,45 @@ class MLAideClient:
         """
         return ActiveRun(self.__api_client, self.__project_key, experiment_key, run_name, used_artifacts)
 
-    def get_artifact(self, artifact_name: str, artifact_version: str) -> ActiveArtifact:
-        return ActiveArtifact(self.__api_client, self.__project_key, artifact_name, artifact_version)
+    def get_artifact(self, name: str, version: Optional[int]) -> ActiveArtifact:
+        """Gets an existing artifact. The artifact is specified by its name and version. If no version
+        is specified, the latest available version of the artifact will be used.
+
+        Arguments:
+            name: The name of the artifact.
+            version: The (optional) version of the artifact. If no version is specified, the latest available version
+            will be loaded.
+
+        Returns:
+             This object encapsulates an artifact and provides functions to interact with the artifact.
+        """
+
+        return ActiveArtifact(self.__api_client, self.__project_key, name, version)
+
+    def load_model(self,
+                   name: str,
+                   version: Optional[int] = None,
+                   stage: Optional[ModelStage] = None) -> any:
+        """Loads and restores a model. The model is specified by its name and version. If no version
+        is specified, the latest available version of the model will be used.
+
+        Arguments:
+            name: The name of the model.
+            version: The (optional) version of the model. If no version is specified, the latest available version
+            will be loaded.
+            stage: This argument can only be used when version is None. In this case the latest model can be filtered
+            by its stage. In reverse this means that all model versions will be ignored when they have not the specified
+            stage.
+
+        Returns:
+             The model. E.g. in the case of a scikit-learn model the return value will be a deserialized model that
+             can be used for predictions using `.predict(...)`.
+         """
+
+        if version is not None and stage is not None:
+            raise ValueError("Only one argument of version and stage can be not None")
+
+        return ActiveArtifact(self.__api_client, self.__project_key, name, version, stage).load_model()
 
     @property
     def options(self) -> ConnectionOptions:

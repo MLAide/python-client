@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, cast, Optional
+from httpx import Response
 
 
 @dataclass
@@ -9,7 +10,7 @@ class Error:
     """  """
 
     code: int
-    message: str
+    message: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         code = self.code
@@ -27,3 +28,16 @@ class Error:
         message = d["message"]
 
         return Error(code=code, message=message,)
+
+    @staticmethod
+    def from_response(response: Response):
+        # todo: Implement proper error response parsing
+        response_body = cast(Dict[str, Any], response.json())
+
+        try:
+            error = Error.from_dict(response_body)
+        except KeyError:
+            print(response.json())
+            error = Error(code=response.status_code)
+
+        return error

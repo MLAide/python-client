@@ -19,6 +19,10 @@ examples/**/*.pkl
 !examples/house_prices/data/sample_submission.csv
 !examples/house_prices/data/USA_Housing.csv
 
+#dephell specific
+README.rst
+setup.py
+
 # Log files
 *.log
 

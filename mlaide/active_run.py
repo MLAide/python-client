@@ -1,4 +1,4 @@
-from . import _model_serializer
+from . import _model_deser
 from ._api_client import Client
 from ._api_client.api import run_api, artifact_api
 from ._api_client.dto import ArtifactDto, RunDto, StatusDto
@@ -95,7 +95,7 @@ class ActiveRun(object):
             model_name: The name of the model. The name will be used as artifact filename.
             metadata: Some optional metadata that will be attached to the artifact.
         """
-        serialized_model = _model_serializer.serialize(model)
+        serialized_model = _model_deser.serialize(model)
 
         artifact = self.create_artifact(name=model_name, artifact_type='model', metadata=metadata)
         self.add_artifact_file(artifact=artifact, file=serialized_model, filename='model.pkl')
