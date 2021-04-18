@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlaide"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = ""
 authors = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
 maintainers = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
