@@ -20,20 +20,19 @@ over and over again:
 ## Contribution
 ### Prerequisites
 1. Install [Python](https://www.python.org/)
-2. Install [pipenv](https://github.com/pypa/pipenv)
+2. Install [Python Poetry](https://python-poetry.org/docs/#installation)
 3. Optional - Install IDE: [PyCharm](https://www.jetbrains.com/pycharm/) 
 or [Visual Studio Code](https://code.visualstudio.com/)
 
 ### Setup Environment
 1. Install environment and download dependencies
-    ```
-   PIPENV_IGNORE_VIRTUALENVS=1
-   pipenv install --dev
+    ```shell
+   poetry install
    ```
    
 2. Activate environment
-    ```shell script
-    pipenv shell
+    ```shell
+    poetry shell
     ```
 
 ### Run Tests
@@ -49,12 +48,10 @@ coverage html
 
 ### Build
 ```
-python setup.py bdist_wheel
+poetry build
 ```
 
-### Install
-To install the package in the local environment in editable mode 
-use the following command:
+### Publish (on PyPI)
 ```
-pipenv install -e .
+poetry publish
 ```
