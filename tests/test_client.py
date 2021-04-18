@@ -71,7 +71,37 @@ def test_start_new_run_should_instantiate_new_active_run_with_correct_arguments(
 
     # assert
     mock_active_run.assert_called_once_with(
-        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts)
+        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, True)
+    assert active_run == mock_active_run.return_value
+
+
+def test_start_new_run_and_do_not_auto_create_experiment_should_instantiate_new_active_run_with_correct_arguments(
+        mock_authenticated_client, mock_active_run):
+    # arrange
+    client = MLAideClient('project key')
+    used_artifacts = []
+
+    # act
+    active_run = client.start_new_run('experiment key', 'run name', used_artifacts, False)
+
+    # assert
+    mock_active_run.assert_called_once_with(
+        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, False)
+    assert active_run == mock_active_run.return_value
+
+
+def test_start_new_run_and_do_auto_create_experiment_should_instantiate_new_active_run_with_correct_arguments(
+        mock_authenticated_client, mock_active_run):
+    # arrange
+    client = MLAideClient('project key')
+    used_artifacts = []
+
+    # act
+    active_run = client.start_new_run('experiment key', 'run name', used_artifacts, True)
+
+    # assert
+    mock_active_run.assert_called_once_with(
+        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, True)
     assert active_run == mock_active_run.return_value
 
 

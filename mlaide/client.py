@@ -74,7 +74,8 @@ class MLAideClient:
     def start_new_run(self,
                       experiment_key: str = None,
                       run_name: str = None,
-                      used_artifacts: List[ArtifactRef] = None) -> ActiveRun:
+                      used_artifacts: List[ArtifactRef] = None,
+                      auto_create_experiment: bool = True) -> ActiveRun:
         """Creates and starts a new run, that will be assigned to the specified experiment. The run object can be used
         to log all necessary information.
 
@@ -85,12 +86,20 @@ class MLAideClient:
             be used.
             used_artifacts: An optional list of `ArtifactRef` that references artifacts, that are used as input for
             this run. This information will help to create and visualize the experiment lineage.
+            auto_create_experiment: Specifies whether the experiment (see `experiment_key`) should be created if it
+            does not exist or not. If `auto_create_experiment` is `False` and the experiment does not exist an error
+            will be raised.
 
         Returns:
             This object encapsulates the newly created run and provides functions to log all information \
             that belongs to the run.
         """
-        return ActiveRun(self.__api_client, self.__project_key, experiment_key, run_name, used_artifacts)
+        return ActiveRun(self.__api_client,
+                         self.__project_key,
+                         experiment_key,
+                         run_name,
+                         used_artifacts,
+                         auto_create_experiment)
 
     def get_artifact(self, name: str, version: Optional[int]) -> ActiveArtifact:
         """Gets an existing artifact. The artifact is specified by its name and version. If no version

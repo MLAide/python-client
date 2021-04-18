@@ -4,7 +4,12 @@ from os import path
 import pytest
 import io
 
-from mlaide.active_run import ActiveRun, ArtifactRef, Run, RunDto, ArtifactDto, Artifact, RunStatus, StatusDto
+from mlaide.active_run import \
+    ActiveRun, \
+    ArtifactDto, Artifact, ArtifactRef, \
+    ExperimentDto, ExperimentStatusDto, \
+    Run, RunDto, RunStatus, \
+    StatusDto
 
 
 @pytest.fixture
@@ -41,6 +46,11 @@ def run_api_mock(mocker: MockerFixture):
 
 
 @pytest.fixture
+def experiment_api_mock(mocker: MockerFixture):
+    return mocker.patch('mlaide.active_run.experiment_api')
+
+
+@pytest.fixture
 def artifact_api_mock(mocker: MockerFixture):
     return mocker.patch('mlaide.active_run.artifact_api')
 
@@ -53,7 +63,7 @@ def create_run_mock(run_api_mock, mocker: MockerFixture):
 
 @pytest.fixture
 def active_run(client_mock, create_run_mock, run_to_dto_mock, dto_to_run_mock):
-    return ActiveRun(client_mock.return_value, 'project key', 'exp key', 'run name')
+    return ActiveRun(client_mock.return_value, 'project key', 'exp key', 'run name', auto_create_experiment=False)
 
 
 def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_mock, create_run_mock):
@@ -64,7 +74,8 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     used_artifact = [ArtifactRef('a name', 1)]
 
     # act
-    active_run = ActiveRun(client_mock.return_value, 'project key', 'exp key', 'run name', used_artifact)
+    active_run = ActiveRun(client_mock.return_value, 'project key',
+                           'exp key', 'run name', used_artifact, auto_create_experiment=False)
 
     # assert
     assert active_run.run == dto_to_run_mock.return_value
@@ -79,6 +90,80 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     run_to_dto_mock.assert_called_once_with(run_to_create, 'exp key', used_artifact)
 
     dto_to_run_mock.assert_called_once_with(created_run_dto)
+
+
+def test_init_auto_create_experiment_is_true_and_experiment_key_is_none_should_not_create_new_experiment(
+        client_mock,
+        run_to_dto_mock,
+        dto_to_run_mock,
+        create_run_mock,
+        experiment_api_mock):
+    # arrange
+    created_run_dto = RunDto()
+    create_run_mock.return_value = created_run_dto
+
+    # act
+    ActiveRun(api_client=client_mock.return_value,
+              project_key='project key',
+              experiment_key=None,
+              run_name='run name',
+              auto_create_experiment=True)
+
+    # assert
+    experiment_api_mock.get_experiment.assert_not_called()
+    experiment_api_mock.create_experiment.assert_not_called()
+
+
+def test_init_auto_create_experiment_is_true_and_specified_experiment_key_exists_should_not_create_new_experiment(
+        client_mock,
+        run_to_dto_mock,
+        dto_to_run_mock,
+        create_run_mock,
+        experiment_api_mock):
+    # arrange
+    created_run_dto = RunDto()
+    create_run_mock.return_value = created_run_dto
+    experiment_api_mock.get_experiment.return_value = ExperimentDto()
+
+    # act
+    ActiveRun(api_client=client_mock.return_value,
+              project_key='project key',
+              experiment_key='exp key',
+              run_name='run name',
+              auto_create_experiment=True)
+
+    # assert
+    experiment_api_mock.get_experiment.assert_called_once_with(client=client_mock.return_value,
+                                                               project_key='project key', experiment_key='exp key')
+    experiment_api_mock.create_experiment.assert_not_called()
+
+
+def test_init_auto_create_experiment_is_true_and_specified_experiment_key_does_not_exist_should_create_new_experiment(
+        client_mock,
+        run_to_dto_mock,
+        dto_to_run_mock,
+        create_run_mock,
+        experiment_api_mock):
+    # arrange
+    created_run_dto = RunDto()
+    create_run_mock.return_value = created_run_dto
+    experiment_api_mock.get_experiment.return_value = None
+
+    expected_experiment_to_create = ExperimentDto(key='exp key', name='exp key', status=ExperimentStatusDto.IN_PROGRESS)
+
+    # act
+    ActiveRun(api_client=client_mock.return_value,
+              project_key='project key',
+              experiment_key='exp key',
+              run_name='run name',
+              auto_create_experiment=True)
+
+    # assert
+    experiment_api_mock.get_experiment.assert_called_once_with(client=client_mock.return_value,
+                                                               project_key='project key', experiment_key='exp key')
+    experiment_api_mock.create_experiment.assert_called_once_with(client=client_mock.return_value,
+                                                                  project_key='project key',
+                                                                  experiment=expected_experiment_to_create)
 
 
 def test_log_metric_should_add_metric_to_run_and_call_update_on_api(active_run, client_mock, run_api_mock):
