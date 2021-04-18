@@ -1,4 +1,5 @@
 # Python Client Library for ML Aide
+[![CI pipeline](https://github.com/MLAide/python-client/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/MLAide/python-client/actions/workflows/ci-pipeline.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=MLAide_python-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=MLAide_python-client)
 
 ## Run example scripts
 In `examples/` you can find some python scripts as an example.
