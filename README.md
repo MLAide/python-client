@@ -55,3 +55,10 @@ poetry build
 ```
 poetry publish
 ```
+
+## Links
+
+- **Homepage:** https://mlaide.com
+- **Quickstart:** https://docs.mlaide.com/start/quickstart/
+- **Tutorial:** https://docs.mlaide.com/tutorial/introduction/
+- **Documentation:** https://docs.mlaide.com/
