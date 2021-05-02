@@ -2,9 +2,9 @@ from typing import Any, cast, Dict, Optional
 
 import httpx
 
+from ._api_commons import assert_response_status
 from ..client import Client
-from ..errors import ApiResponseError
-from ..dto import ExperimentDto, Error
+from ..dto import ExperimentDto
 
 
 def create_experiment(*, client: Client, project_key: str, experiment: ExperimentDto) -> ExperimentDto:
@@ -17,10 +17,9 @@ def create_experiment(*, client: Client, project_key: str, experiment: Experimen
 
     response = httpx.post(url=url, headers=headers, json=json_body)
 
-    if response.status_code == 200:
-        return ExperimentDto.from_dict(cast(Dict[str, Any], response.json()))
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
+    assert_response_status(response)
+
+    return ExperimentDto.from_dict(cast(Dict[str, Any], response.json()))
 
 
 def get_experiment(*, client: Client,
@@ -37,9 +36,9 @@ def get_experiment(*, client: Client,
         headers=headers,
     )
 
-    if response.status_code == 200:
-        return ExperimentDto.from_dict(cast(Dict[str, Any], response.json()))
-    elif response.status_code == 404:
+    assert_response_status(response, is_404_valid=True)
+
+    if response.status_code == 404:
         return None
-    else:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+
+    return ExperimentDto.from_dict(cast(Dict[str, Any], response.json()))

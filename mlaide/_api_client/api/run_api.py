@@ -2,9 +2,9 @@ from typing import Any, Dict, cast
 
 import httpx
 
+from ._api_commons import assert_response_status
 from ..client import Client
-from ..errors import ApiResponseError
-from ..dto import Error, RunDto
+from ..dto import RunDto
 
 content_type_merge_patch = 'application/merge-patch+json'
 
@@ -19,10 +19,9 @@ def create_run(*, client: Client, project_key: str, run: RunDto) -> RunDto:
 
     response = httpx.post(url=url, headers=headers, json=json_body)
 
-    if response.status_code == 200:
-        return RunDto.from_dict(cast(Dict[str, Any], response.json()))
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
+    assert_response_status(response)
+
+    return RunDto.from_dict(cast(Dict[str, Any], response.json()))
 
 
 def partial_update_run(*, client: Client, project_key: str, run_key: int, run: RunDto) -> None:
@@ -38,10 +37,7 @@ def partial_update_run(*, client: Client, project_key: str, run_key: int, run: R
 
     response = httpx.patch(url=url, headers=headers, json=json_body)
 
-    if response.status_code == 204:
-        return None
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
+    assert_response_status(response)
 
 
 def update_run_parameters(*, client: Client, project_key: str, run_key: int, parameters: Dict[str, Any]) -> None:
@@ -55,10 +51,7 @@ def update_run_parameters(*, client: Client, project_key: str, run_key: int, par
 
     response = httpx.patch(url=url, headers=headers, json=parameters)
 
-    if response.status_code == 204:
-        return None
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
+    assert_response_status(response)
 
 
 def update_run_metrics(*, client: Client, project_key: str, run_key: int, metrics: Dict[str, Any]) -> None:
@@ -72,7 +65,4 @@ def update_run_metrics(*, client: Client, project_key: str, run_key: int, metric
 
     response = httpx.patch(url=url, headers=headers, json=metrics)
 
-    if response.status_code == 204:
-        return None
-    else:
-        raise ApiResponseError(response=response, error=Error.from_dict(cast(Dict[str, Any], response.json())))
+    assert_response_status(response)

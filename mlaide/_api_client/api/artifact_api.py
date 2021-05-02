@@ -4,9 +4,9 @@ from typing import Any, cast, Dict, Optional
 
 import httpx
 
+from ._api_commons import assert_response_status
 from ..client import Client
-from ..errors import ApiResponseError
-from ..dto import ArtifactDto, Error
+from ..dto import ArtifactDto
 
 
 def create_model(*, client: Client, project_key: str, artifact_name: str, artifact_version: int) -> None:
@@ -21,10 +21,7 @@ def create_model(*, client: Client, project_key: str, artifact_name: str, artifa
         headers=headers,
     )
 
-    if response.status_code == 204:
-        return None
-    else:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+    assert_response_status(response)
 
 
 def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto) -> ArtifactDto:
@@ -40,10 +37,9 @@ def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto) 
         json=artifact.to_dict_without_none_values()
     )
 
-    if response.status_code == 200:
-        return ArtifactDto.from_dict(response.json())
-    else:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+    assert_response_status(response)
+
+    return ArtifactDto.from_dict(response.json())
 
 
 def upload_file(*, client: Client, project_key: str, artifact_name: str, artifact_version: int, filename: str, file: io.BytesIO):
@@ -61,8 +57,7 @@ def upload_file(*, client: Client, project_key: str, artifact_name: str, artifac
         files=files
     )
 
-    if response.status_code != 204:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+    assert_response_status(response)
 
 
 def get_artifact(*, client: Client,
@@ -86,10 +81,9 @@ def get_artifact(*, client: Client,
         params=query_params
     )
 
-    if response.status_code == 200:
-        return ArtifactDto.from_dict(cast(Dict[str, Any], response.json()))
-    else:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+    assert_response_status(response)
+
+    return ArtifactDto.from_dict(cast(Dict[str, Any], response.json()))
 
 
 def download_artifact(*,
@@ -110,10 +104,9 @@ def download_artifact(*,
         headers=headers
     )
 
-    if response.status_code == 200:
-        content_disposition = response.headers.get("Content-Disposition")
-        value, params = cgi.parse_header(content_disposition)
-        filename = params.get("filename")
-        return io.BytesIO(response.content), filename
-    else:
-        raise ApiResponseError(response=response, error=Error.from_response(response))
+    assert_response_status(response)
+
+    content_disposition = response.headers.get("Content-Disposition")
+    value, params = cgi.parse_header(content_disposition)
+    filename = params.get("filename")
+    return io.BytesIO(response.content), filename

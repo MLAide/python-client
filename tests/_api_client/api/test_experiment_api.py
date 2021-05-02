@@ -13,6 +13,11 @@ def client(mocker: MockerFixture):
     return client
 
 
+@pytest.fixture
+def assert_response_status_mock(mocker: MockerFixture):
+    return mocker.patch('mlaide._api_client.api.experiment_api.assert_response_status')
+
+
 def test_create_experiment_should_return_created_experiment(client, httpx_mock):
     # arrange
     experiment = ExperimentDto(key='exp key')
@@ -32,7 +37,7 @@ def test_create_experiment_should_return_created_experiment(client, httpx_mock):
     assert created_experiment.key == 'saved'
 
 
-def test_create_experiment_api_returns_status_500_should_raise_error(client, httpx_mock):
+def test_create_experiment_should_assert_status_code(client, httpx_mock, assert_response_status_mock):
     # arrange
     experiment = ExperimentDto(key='exp key')
     httpx_mock.add_response(method='POST',
@@ -43,11 +48,11 @@ def test_create_experiment_api_returns_status_500_should_raise_error(client, htt
                             status_code=500)
 
     # act
-    with pytest.raises(experiment_api.ApiResponseError):
-        experiment_api.create_experiment(client=client, project_key='pk', experiment=experiment)
+    experiment_api.create_experiment(client=client, project_key='pk', experiment=experiment)
 
     # assert
     assert httpx_mock.get_request() is not None
+    assert_response_status_mock.assert_called_once()
 
 
 def test_get_experiment_should_return_experiment(client, httpx_mock):
@@ -66,7 +71,22 @@ def test_get_experiment_should_return_experiment(client, httpx_mock):
     assert experiment.key == 'experiment key'
 
 
-def test_get_experiment_should_raise_error_when_status_code_is_not_200(client, httpx_mock):
+def test_get_experiment_return_404_should_return_none(client, httpx_mock):
+    # arrange
+    httpx_mock.add_response(method='GET',
+                            url='https://mlaide.com/projects/pk/experiments/e',
+                            match_headers=client.get_headers(),
+                            status_code=404)
+
+    # act
+    experiment = experiment_api.get_experiment(client=client, project_key='pk', experiment_key='e')
+
+    # assert
+    assert httpx_mock.get_request() is not None
+    assert experiment is None
+
+
+def test_get_experiment_should_assert_status_code(client, httpx_mock, assert_response_status_mock):
     # arrange
     httpx_mock.add_response(method='GET',
                             url='https://mlaide.com/projects/pk/experiments/e',
@@ -75,5 +95,7 @@ def test_get_experiment_should_raise_error_when_status_code_is_not_200(client, h
                             json={'code': 500, 'message': 'error'})
 
     # act
-    with pytest.raises(experiment_api.ApiResponseError):
-        experiment_api.get_experiment(client=client, project_key='pk', experiment_key='e')
+    experiment_api.get_experiment(client=client, project_key='pk', experiment_key='e')
+
+    # assert
+    assert_response_status_mock.assert_called_once()
