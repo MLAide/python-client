@@ -101,7 +101,7 @@ class MLAideClient:
                          used_artifacts,
                          auto_create_experiment)
 
-    def get_artifact(self, name: str, version: Optional[int]) -> ActiveArtifact:
+    def get_artifact(self, name: str, version: Optional[int] = None) -> ActiveArtifact:
         """Gets an existing artifact. The artifact is specified by its name and version. If no version
         is specified, the latest available version of the artifact will be used.
 
