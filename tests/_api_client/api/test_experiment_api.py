@@ -71,6 +71,21 @@ def test_get_experiment_should_return_experiment(client, httpx_mock):
     assert experiment.key == 'experiment key'
 
 
+def test_get_experiment_return_404_should_return_none(client, httpx_mock):
+    # arrange
+    httpx_mock.add_response(method='GET',
+                            url='https://mlaide.com/projects/pk/experiments/e',
+                            match_headers=client.get_headers(),
+                            status_code=404)
+
+    # act
+    experiment = experiment_api.get_experiment(client=client, project_key='pk', experiment_key='e')
+
+    # assert
+    assert httpx_mock.get_request() is not None
+    assert experiment is None
+
+
 def test_get_experiment_should_assert_status_code(client, httpx_mock, assert_response_status_mock):
     # arrange
     httpx_mock.add_response(method='GET',
