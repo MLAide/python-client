@@ -81,14 +81,14 @@ class MLAideClient:
 
         Arguments:
             experiment_key: The key of the experiment, that the new run should be assigned to. If `None` a new, random
-            experiment will be created.
+                experiment will be created.
             run_name: The name of the run. The name helps to identify the run for humans. If `None` a random name will
-            be used.
+                be used.
             used_artifacts: An optional list of `ArtifactRef` that references artifacts, that are used as input for
-            this run. This information will help to create and visualize the experiment lineage.
+                this run. This information will help to create and visualize the experiment lineage.
             auto_create_experiment: Specifies whether the experiment (see `experiment_key`) should be created if it
-            does not exist or not. If `auto_create_experiment` is `False` and the experiment does not exist an error
-            will be raised.
+                does not exist or not. If `auto_create_experiment` is `False` and the experiment does not exist an error
+                will be raised.
 
         Returns:
             This object encapsulates the newly created run and provides functions to log all information \
@@ -108,7 +108,7 @@ class MLAideClient:
         Arguments:
             name: The name of the artifact.
             version: The (optional) version of the artifact. If no version is specified, the latest available version
-            will be loaded.
+                will be loaded.
 
         Returns:
              This object encapsulates an artifact and provides functions to interact with the artifact.
@@ -125,11 +125,11 @@ class MLAideClient:
 
         Arguments:
             name: The name of the model.
-            version: The (optional) version of the model. If no version is specified, the latest available version
-            will be loaded.
-            stage: This argument can only be used when version is None. In this case the latest model can be filtered
-            by its stage. In reverse this means that all model versions will be ignored when they have not the specified
-            stage.
+            version: The (optional) version of the model. If no version is specified, the latest available version will
+                be loaded.
+            stage: This argument can only be used when version is None. In this case the latest model can be filtered by
+                its stage. In reverse this means that all model versions will be ignored when they have not the
+                specified stage.
 
         Returns:
              The model. E.g. in the case of a scikit-learn model the return value will be a deserialized model that
