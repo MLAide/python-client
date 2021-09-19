@@ -2,6 +2,7 @@ import datetime
 from enum import Enum
 from typing import Dict, Optional
 from dataclasses import dataclass, field
+from . import Git
 
 
 class RunStatus(str, Enum):
@@ -12,6 +13,7 @@ class RunStatus(str, Enum):
 
 @dataclass
 class Run(object):
+    git: Optional[Git] = None
     key: Optional[int] = None
     name: Optional[str] = None
     start_time: datetime = None

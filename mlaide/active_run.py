@@ -2,7 +2,7 @@ from . import _model_deser
 from ._api_client import Client
 from ._api_client.api import run_api, artifact_api, experiment_api
 from ._api_client.dto import ArtifactDto, ExperimentDto, ExperimentStatusDto, RunDto, StatusDto
-from .model import Artifact, ArtifactRef, Run, RunStatus
+from .model import Artifact, ArtifactRef, Git, Run, RunStatus
 from .mapper import dto_to_run, run_to_dto, dto_to_artifact
 
 from datetime import datetime
@@ -22,8 +22,9 @@ class ActiveRun(object):
     def __init__(self,
                  api_client: Client,
                  project_key: str,
+                 run_name: str,
+                 git: Optional[Git] = None,
                  experiment_key: Optional[str] = None,
-                 run_name: str = None,
                  used_artifacts: Optional[List[ArtifactRef]] = None,
                  auto_create_experiment: bool = True):
         self.__api_client = api_client
@@ -32,13 +33,14 @@ class ActiveRun(object):
         if auto_create_experiment and experiment_key is not None:
             self.__create_experiment_if_not_present(project_key, experiment_key)
 
-        self.__run = self.__create_new_run(experiment_key, run_name, used_artifacts)
+        self.__run = self.__create_new_run(experiment_key, run_name, git, used_artifacts)
 
     def __create_new_run(self,
-                         experiment_key: str = None,
-                         run_name: str = None,
+                         experiment_key: str,
+                         run_name: str,
+                         git: Optional[Git] = None,
                          used_artifacts: Optional[List[ArtifactRef]] = None) -> Run:
-        run = Run(name=run_name, status=RunStatus.RUNNING)
+        run = Run(name=run_name, status=RunStatus.RUNNING, git=git)
         run_to_create = run_to_dto(run, experiment_key, used_artifacts)
 
         created_run: RunDto = run_api.create_run(

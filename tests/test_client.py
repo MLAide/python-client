@@ -19,6 +19,11 @@ def mock_active_artifact(mocker: MockerFixture):
     return mocker.patch('mlaide.client.ActiveArtifact')
 
 
+@pytest.fixture
+def mock_get_git_metadata(mocker: MockerFixture):
+    return mocker.patch('mlaide.client.get_git_metadata')
+
+
 def test_init_should_raise_value_error_if_project_key_is_none():
     with pytest.raises(ValueError):
         # noinspection PyTypeChecker
@@ -61,7 +66,7 @@ def test_init_should_create_authenticated_client(mock_authenticated_client):
 
 
 def test_start_new_run_should_instantiate_new_active_run_with_correct_arguments(
-        mock_authenticated_client, mock_active_run):
+        mock_authenticated_client, mock_active_run, mock_get_git_metadata):
     # arrange
     client = MLAideClient('project key')
     used_artifacts = []
@@ -71,12 +76,18 @@ def test_start_new_run_should_instantiate_new_active_run_with_correct_arguments(
 
     # assert
     mock_active_run.assert_called_once_with(
-        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, True)
+        api_client=mock_authenticated_client.return_value,
+        project_key='project key',
+        run_name='run name',
+        git=mock_get_git_metadata.return_value,
+        experiment_key='experiment key',
+        used_artifacts=used_artifacts,
+        auto_create_experiment=True)
     assert active_run == mock_active_run.return_value
 
 
 def test_start_new_run_and_do_not_auto_create_experiment_should_instantiate_new_active_run_with_correct_arguments(
-        mock_authenticated_client, mock_active_run):
+        mock_authenticated_client, mock_active_run, mock_get_git_metadata):
     # arrange
     client = MLAideClient('project key')
     used_artifacts = []
@@ -86,12 +97,18 @@ def test_start_new_run_and_do_not_auto_create_experiment_should_instantiate_new_
 
     # assert
     mock_active_run.assert_called_once_with(
-        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, False)
+        api_client=mock_authenticated_client.return_value,
+        project_key='project key',
+        run_name='run name',
+        git=mock_get_git_metadata.return_value,
+        experiment_key='experiment key',
+        used_artifacts=used_artifacts,
+        auto_create_experiment=False)
     assert active_run == mock_active_run.return_value
 
 
 def test_start_new_run_and_do_auto_create_experiment_should_instantiate_new_active_run_with_correct_arguments(
-        mock_authenticated_client, mock_active_run):
+        mock_authenticated_client, mock_active_run, mock_get_git_metadata):
     # arrange
     client = MLAideClient('project key')
     used_artifacts = []
@@ -101,7 +118,13 @@ def test_start_new_run_and_do_auto_create_experiment_should_instantiate_new_acti
 
     # assert
     mock_active_run.assert_called_once_with(
-        mock_authenticated_client.return_value, 'project key', 'experiment key', 'run name', used_artifacts, True)
+        api_client=mock_authenticated_client.return_value,
+        project_key='project key',
+        run_name='run name',
+        git=mock_get_git_metadata.return_value,
+        experiment_key='experiment key',
+        used_artifacts=used_artifacts,
+        auto_create_experiment=True)
     assert active_run == mock_active_run.return_value
 
 

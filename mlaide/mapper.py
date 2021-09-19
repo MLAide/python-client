@@ -1,5 +1,5 @@
-from .model import Artifact, ArtifactRef, Run, RunStatus
-from ._api_client.dto import ArtifactDto, ArtifactRefDto, ExperimentRefDto, RunDto, StatusDto
+from .model import Artifact, ArtifactRef, Git, Run, RunStatus
+from ._api_client.dto import ArtifactDto, ArtifactRefDto, GitDto, ExperimentRefDto, RunDto, StatusDto
 
 from typing import List, Optional
 
@@ -26,6 +26,7 @@ def run_to_dto(run: Run, experiment_key: Optional[str], used_artifacts: Optional
         created_by=None,
         end_time=None,
         experiment_refs=None if experiment_key is None else [ExperimentRefDto(experiment_key)],
+        git=None if run.git is None else git_to_dto(run.git),
         key=None,
         metrics=None,
         name=run.name,
@@ -45,6 +46,15 @@ def dto_to_run(run_dto: RunDto) -> Run:
         start_time=run_dto.start_time,
         end_time=run_dto.end_time,
         key=run_dto.key,
+    )
+
+
+def git_to_dto(git: Git) -> GitDto:
+    return GitDto(
+        commit_time=git.commit_time,
+        commit_hash=git.commit_hash,
+        is_dirty=git.is_dirty,
+        repository_uri=git.repository_uri
     )
 
 

@@ -1,4 +1,4 @@
-from parameters import get_project_key, get_experiment_key, get_alpha, get_l1_ratio
+from parameters import get_project_key, get_experiment_key
 from data_ingest import run_ingest
 from data_cleansing import run_cleansing
 from training import run_training

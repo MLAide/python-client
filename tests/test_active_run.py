@@ -8,7 +8,7 @@ from mlaide.active_run import \
     ActiveRun, \
     ArtifactDto, Artifact, ArtifactRef, \
     ExperimentDto, ExperimentStatusDto, \
-    Run, RunDto, RunStatus, \
+    Git, Run, RunDto, RunStatus, \
     StatusDto
 
 
@@ -63,7 +63,8 @@ def create_run_mock(run_api_mock, mocker: MockerFixture):
 
 @pytest.fixture
 def active_run(client_mock, create_run_mock, run_to_dto_mock, dto_to_run_mock):
-    return ActiveRun(client_mock.return_value, 'project key', 'exp key', 'run name', auto_create_experiment=False)
+    return ActiveRun(
+        client_mock.return_value, 'project key', 'run name', Git(), 'exp key', auto_create_experiment=False)
 
 
 def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_mock, create_run_mock):
@@ -72,10 +73,16 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     create_run_mock.return_value = created_run_dto
 
     used_artifact = [ArtifactRef('a name', 1)]
+    git = Git(
+        commit_time=datetime.now(),
+        commit_hash='abc',
+        repository_url='remote repo',
+        is_dirty=True
+    )
 
     # act
     active_run = ActiveRun(client_mock.return_value, 'project key',
-                           'exp key', 'run name', used_artifact, auto_create_experiment=False)
+                           'run name', git, 'exp key', used_artifact, auto_create_experiment=False)
 
     # assert
     assert active_run.run == dto_to_run_mock.return_value
@@ -86,6 +93,7 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
 
     run_to_create: Run = run_to_dto_mock.call_args[0][0]
     assert run_to_create.name == 'run name'
+    assert run_to_create.git == git
 
     run_to_dto_mock.assert_called_once_with(run_to_create, 'exp key', used_artifact)
 
@@ -105,8 +113,9 @@ def test_init_auto_create_experiment_is_true_and_experiment_key_is_none_should_n
     # act
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
-              experiment_key=None,
               run_name='run name',
+              git=Git(),
+              experiment_key=None,
               auto_create_experiment=True)
 
     # assert
@@ -128,8 +137,9 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_exists
     # act
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
-              experiment_key='exp key',
               run_name='run name',
+              git=Git(),
+              experiment_key='exp key',
               auto_create_experiment=True)
 
     # assert
@@ -154,8 +164,9 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_does_n
     # act
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
-              experiment_key='exp key',
               run_name='run name',
+              git=Git(),
+              experiment_key='exp key',
               auto_create_experiment=True)
 
     # assert

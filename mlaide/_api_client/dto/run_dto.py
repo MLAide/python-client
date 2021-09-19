@@ -4,9 +4,10 @@ import datetime
 from typing import Any, Dict, Optional, List
 
 from .artifact_ref_dto import ArtifactRefDto
+from .git_dto import GitDto
 from .experiment_ref_dto import ExperimentRefDto
-from .helper import datetime_field, ExtendedDtoSerializer
 from .status_dto import StatusDto
+from .helper import datetime_field, ExtendedDtoSerializer
 
 
 @dataclass
@@ -20,6 +21,7 @@ class RunDto(ExtendedDtoSerializer, DataClassJsonMixin):
     created_by: Optional[Dict[Any, Any]] = None
     end_time: Optional[datetime.datetime] = datetime_field()
     experiment_refs: Optional[List[ExperimentRefDto]] = None
+    git: Optional[GitDto] = None
     key: Optional[int] = None
     metrics: Optional[Dict[str, Any]] = None
     name: Optional[str] = None

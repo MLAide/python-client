@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
 from ._api_client import Client, AuthenticatedClient
 from .active_run import ActiveRun
 from .active_artifact import ActiveArtifact
 from .model import ArtifactRef, ModelStage
+from .git_resolver import get_git_metadata
 
 
 @dataclass
@@ -94,12 +95,13 @@ class MLAideClient:
             This object encapsulates the newly created run and provides functions to log all information \
             that belongs to the run.
         """
-        return ActiveRun(self.__api_client,
-                         self.__project_key,
-                         experiment_key,
-                         run_name,
-                         used_artifacts,
-                         auto_create_experiment)
+        return ActiveRun(api_client=self.__api_client,
+                         project_key=self.__project_key,
+                         run_name=run_name,
+                         git=get_git_metadata(),
+                         experiment_key=experiment_key,
+                         used_artifacts=used_artifacts,
+                         auto_create_experiment=auto_create_experiment)
 
     def get_artifact(self, name: str, version: Optional[int] = None) -> ActiveArtifact:
         """Gets an existing artifact. The artifact is specified by its name and version. If no version
