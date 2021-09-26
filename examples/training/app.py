@@ -13,7 +13,7 @@ if __name__ == "__main__":
     try:
         run_ingest(project_key, experiment_key)
         run_cleansing(project_key, experiment_key)
-        run_training(project_key, experiment_key, True, 0.5, 0.5)
+        run_training(project_key, experiment_key, True, 0.6, 0.5)
         run_training(project_key, experiment_key, True, 0.4, 0.4)
         run_training(project_key, experiment_key, True, 0.8, 0.3)
         run_training(project_key, experiment_key, False, 0.8, 0.8)
