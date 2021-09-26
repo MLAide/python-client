@@ -14,6 +14,7 @@ dist/
 examples/**/*.csv
 examples/**/*.txt
 examples/**/*.pkl
+!examples/training/sub/data.txt
 !examples/house_prices/data/test.csv
 !examples/house_prices/data/train.csv
 !examples/house_prices/data/sample_submission.csv
