@@ -64,7 +64,7 @@ def create_run_mock(run_api_mock, mocker: MockerFixture):
 @pytest.fixture
 def active_run(client_mock, create_run_mock, run_to_dto_mock, dto_to_run_mock):
     return ActiveRun(
-        client_mock.return_value, 'project key', 'run name', Git(), 'exp key', auto_create_experiment=False)
+        client_mock.return_value, 'project key', 'run name', None, 'exp key', auto_create_experiment=False)
 
 
 def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_mock, create_run_mock):
@@ -76,7 +76,7 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     git = Git(
         commit_time=datetime.now(),
         commit_hash='abc',
-        repository_url='remote repo',
+        repository_uri='remote repo',
         is_dirty=True
     )
 
@@ -114,7 +114,7 @@ def test_init_auto_create_experiment_is_true_and_experiment_key_is_none_should_n
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key=None,
               auto_create_experiment=True)
 
@@ -138,7 +138,7 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_exists
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key='exp key',
               auto_create_experiment=True)
 
@@ -165,7 +165,7 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_does_n
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key='exp key',
               auto_create_experiment=True)
 
