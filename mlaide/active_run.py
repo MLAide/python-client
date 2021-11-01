@@ -88,6 +88,28 @@ class ActiveRun(object):
             metrics={key: value})
         return self.__run
 
+    def log_metric_epoch(self, key: str, epoch: str, value) -> Run:
+        """Logs a metric for an epoch
+
+        Arguments:
+            key: The key of the metric.
+            epoch: The corresponding epoch.
+            value: The value of the metric. The value can be any type that is JSON serializable.
+        """
+        if self.__run.metrics.get(key):
+            new_dict = dict(self.__run.metrics.get(key))
+            new_dict.update({epoch: value})
+            self.__run.metrics[key] = new_dict
+        else:
+            self.__run.metrics[key] = {epoch: value}
+        run_api.update_run_metrics(
+            client=self.__api_client,
+            project_key=self.__project_key,
+            run_key=self.__run.key,
+            metrics={key: self.__run.metrics[key]})
+        return self.__run
+
+
     def log_parameter(self, key: str, value) -> Run:
         """Logs a parameter
 
