@@ -1,8 +1,11 @@
 import io
+from typing import Any, Callable, Union
 import cloudpickle
+import tempfile
+from pathlib import Path
 
 
-def serialize(model) -> io.BytesIO:
+def serialize(model: Any, save_callback: Callable[[Union[str, io.BytesIO], str], None]):
     for class_obj in model.__class__.__mro__:
         module_name = class_obj.__module__
         if not module_name:
@@ -15,23 +18,22 @@ def serialize(model) -> io.BytesIO:
             buffer = io.BytesIO()
             cloudpickle.dump(model, buffer)
             buffer.seek(0)
-            return buffer
+
+            save_callback(buffer, 'model.pkl')
+            break
         # elif module_name.startswith("xgboost"):
         #     model_type = "xgboost"
         #     bytestream, method = ensure_bytestream(model)
         #     break
-        # elif module_name.startswith("tensorflow.python.keras"):
-        #     model_type = "tensorflow"
-        #     tempf = tempfile.NamedTemporaryFile()
-        #     if get_tensorflow_major_version() == 2:  # save_format param may not exist in TF 1.X
-        #         model.save(tempf.name, save_format='h5')  # TF 2.X uses SavedModel by default
-        #     else:
-        #         model.save(tempf.name)
-        #     tempf.seek(0)
-        #     bytestream = tempf
-        #     method = "keras"
-        #     break
+        elif module_name.startswith("keras.engine.training"):
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                model.save(tmpdirname, save_format='tf')
 
+                tmpdir_path = Path(tmpdirname)
+                pathlist = tmpdir_path.rglob('*')
+                for path in pathlist:
+                    if (path.is_file()):
+                        relative_path = str(path.relative_to(tmpdir_path))
+                        save_callback(str(path), relative_path)
 
-def deserialize(model: io.BytesIO) -> any:
-    return cloudpickle.load(model)
+            break

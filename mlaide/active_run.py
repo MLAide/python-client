@@ -111,10 +111,11 @@ class ActiveRun(object):
             model_name: The name of the model. The name will be used as artifact filename.
             metadata: Some optional metadata that will be attached to the artifact.
         """
-        serialized_model = _model_deser.serialize(model)
-
         artifact = self.create_artifact(name=model_name, artifact_type='model', metadata=metadata)
-        self.add_artifact_file(artifact=artifact, file=serialized_model, filename='model.pkl')
+
+        _model_deser.serialize(
+            model, 
+            lambda serialized_model, filename: self.add_artifact_file(artifact=artifact, file=serialized_model, filename=filename))
 
         artifact_api.create_model(
             client=self.__api_client,

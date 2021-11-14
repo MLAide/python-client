@@ -56,10 +56,6 @@ class ActiveArtifact(object):
             with z.open(desired_file, 'r') as zip_file:
                 return BytesIO(zip_file.read())
 
-    def load_model(self):
-        model_binary = self.load("model.pkl")
-        return _model_deser.deserialize(model_binary)
-
     def download(self, target_directory: str):
         """Downloads all files of this artifact and stores them into the specified directory.
 
@@ -74,7 +70,7 @@ class ActiveArtifact(object):
         with ZipFile(artifact_bytes) as z:
             z.extractall(target_directory)
 
-    def __download_zip(self) -> (BytesIO, str):
+    def __download_zip(self) -> Tuple[BytesIO, str]:
         if self.__cached_zip is None:
             self.__cached_zip = artifact_api.download_artifact(client=self.__api_client,
                                                                project_key=self.__project_key,

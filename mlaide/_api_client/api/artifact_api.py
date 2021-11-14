@@ -1,6 +1,6 @@
 import io
 import cgi
-from typing import Any, cast, Dict, Optional
+from typing import Any, Tuple, cast, Dict, Optional
 
 import httpx
 
@@ -90,7 +90,7 @@ def download_artifact(*,
                       client: Client,
                       project_key: str,
                       artifact_name: str,
-                      artifact_version: int) -> (io.BytesIO, str):
+                      artifact_version: int) -> Tuple[io.BytesIO, str]:
 
     url = "{}/projects/{projectKey}/artifacts/{artifactName}/{artifactVersion}/files" \
         .format(client.base_url, projectKey=project_key, artifactName=artifact_name, artifactVersion=artifact_version)
