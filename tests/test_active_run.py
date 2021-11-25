@@ -10,6 +10,7 @@ from mlaide.active_run import \
     ExperimentDto, ExperimentStatusDto, \
     Git, Run, RunDto, RunStatus, \
     StatusDto
+from mlaide.model import model
 
 
 @pytest.fixture
@@ -269,17 +270,24 @@ def test_log_model_should_create_an_artifact_and_attach_the_serialized_model_as_
     artifact_api_mock.create_artifact.assert_called_once_with(client=client_mock.return_value,
                                                               project_key='project key',
                                                               artifact=expected_artifact_to_create)
-    artifact_api_mock.upload_file.assert_called_once_with(client=client_mock.return_value,
-                                                          project_key='project key',
-                                                          artifact_name='a name',
-                                                          artifact_version=15,
-                                                          filename='model.pkl',
-                                                          file=serialized_model)
     artifact_api_mock.create_model.assert_called_once_with(client=client_mock.return_value,
                                                            project_key='project key',
                                                            artifact_name='a name',
                                                            artifact_version=15)
-    model_serializer_mock.serialize.assert_called_once_with('the model content')
+
+    # assert that the save_callback that is passed to serialize() is working correctly
+    model_serializer_mock.serialize.assert_called_once()
+    serializer_save_callback = model_serializer_mock.serialize.call_args.args[1]
+    file_bytes = io.BytesIO(bytes('some content', 'utf-8'))
+    serializer_save_callback(file_bytes, 'file.txt')
+    artifact_api_mock.upload_file.assert_called_once_with(client=client_mock.return_value,
+                                                          project_key='project key',
+                                                          artifact_name='a name',
+                                                          artifact_version=15,
+                                                          filename='file.txt',
+                                                          file=file_bytes)
+
+    assert model_serializer_mock.serialize.call_args.args[0] == 'the model content'
 
 
 def test_create_artifact_should_create_an_artifact(active_run,

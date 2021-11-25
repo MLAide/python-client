@@ -95,32 +95,3 @@ def test_download_should_cache_downloaded_file_and_download_only_once(
     download_artifact_mock.assert_called_once()
     assert zip_mock.call_count == 2
     assert zip_mock.call_args_list == [mocker.call(zip_bytes), mocker.call(zip_bytes)]
-
-
-def test_load_model_should_load_pkl_and_deserialize_it(active_artifact_with_loaded_artifact: ActiveArtifact,
-                                                       download_artifact_mock,
-                                                       mocker: MockerFixture):
-    # arrange
-    zip_mock = mocker.patch('mlaide.active_artifact.ZipFile')
-    zip_object = zip_mock.return_value.__enter__()
-    zip_object.infolist.return_value = [
-        ZipInfo(filename='file1.txt'),
-        ZipInfo(filename='model.pkl')
-    ]
-    model_binary = io.BytesIO(bytes('m content', 'utf-8'))
-    zip_object.open.return_value = model_binary
-    bytes_ctor_mock = mocker.patch('mlaide.active_artifact.BytesIO')
-    bytes_ctor_mock.return_value = model_binary
-
-    zip_bytes = io.BytesIO(bytes('abc', 'utf-8'))
-    download_artifact_mock.return_value = (zip_bytes, 'artifact.zip')
-
-    model_deser_mock = mocker.patch('mlaide.active_artifact._model_deser')
-    model_deser_mock.deserialize.return_value = 'm content'
-
-    # act
-    model = active_artifact_with_loaded_artifact.load_model()
-
-    # assert
-    assert model == 'm content'
-    model_deser_mock.deserialize.assert_called_once_with(model_binary)
