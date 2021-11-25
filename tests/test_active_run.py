@@ -64,7 +64,7 @@ def create_run_mock(run_api_mock, mocker: MockerFixture):
 @pytest.fixture
 def active_run(client_mock, create_run_mock, run_to_dto_mock, dto_to_run_mock):
     return ActiveRun(
-        client_mock.return_value, 'project key', 'run name', Git(), 'exp key', auto_create_experiment=False)
+        client_mock.return_value, 'project key', 'run name', None, 'exp key', auto_create_experiment=False)
 
 
 def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_mock, create_run_mock):
@@ -76,7 +76,7 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     git = Git(
         commit_time=datetime.now(),
         commit_hash='abc',
-        repository_url='remote repo',
+        repository_uri='remote repo',
         is_dirty=True
     )
 
@@ -114,7 +114,7 @@ def test_init_auto_create_experiment_is_true_and_experiment_key_is_none_should_n
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key=None,
               auto_create_experiment=True)
 
@@ -138,7 +138,7 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_exists
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key='exp key',
               auto_create_experiment=True)
 
@@ -165,7 +165,7 @@ def test_init_auto_create_experiment_is_true_and_specified_experiment_key_does_n
     ActiveRun(api_client=client_mock.return_value,
               project_key='project key',
               run_name='run name',
-              git=Git(),
+              git=None,
               experiment_key='exp key',
               auto_create_experiment=True)
 
@@ -189,6 +189,45 @@ def test_log_metric_should_add_metric_to_run_and_call_update_on_api(active_run, 
                                                             project_key='project key',
                                                             run_key=active_run.run.key,
                                                             metrics={'the-key': 'the value'})
+
+def test_log_metric_epoch_should_add_epoch_metric_to_run_and_call_update_on_api(active_run, client_mock, run_api_mock):
+    # arrange
+
+    # act
+    run = active_run.log_metric_epoch('the-key', 'epoch-1', 'the value')
+    run = active_run.log_metric_epoch('the-key', 'epoch-2', 'the value')
+
+    # assert
+    assert run.metrics == {'the-key': {
+        'epoch-1': 'the value',
+        'epoch-2': 'the value'
+        }
+    }
+    expected_first_args = [({
+        'client': client_mock.return_value,
+        'metrics': {
+            'the-key': {
+                'epoch-1': 'the value'
+            }
+        },
+        'project_key': 'project key',
+        'run_key': active_run.run.key
+    })]
+
+    expected_second_args = [({
+        'client': client_mock.return_value,
+        'metrics': {
+            'the-key': {
+                'epoch-1': 'the value',
+                'epoch-2': 'the value'
+            }
+        },
+        'project_key': 'project key',
+        'run_key': active_run.run.key
+    })]
+    assert run_api_mock.update_run_metrics.call_args_list[0] == expected_first_args
+    assert run_api_mock.update_run_metrics.call_args_list[1] == expected_second_args
+    assert len(run_api_mock.update_run_metrics.call_args_list) == 2
 
 
 def test_log_parameter_should_add_parameter_to_run_and_call_update_on_api(active_run, client_mock, run_api_mock):
