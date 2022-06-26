@@ -66,3 +66,13 @@ def update_run_metrics(*, client: Client, project_key: str, run_key: int, metric
     response = httpx.patch(url=url, headers=headers, json=metrics)
 
     assert_response_status(response)
+
+def attach_artifact_to_run(*, client: Client, project_key: str, run_key: int, artifact_name: str, artifact_version: int) -> None:
+    url = "{}/projects/{projectKey}/runs/{runKey}/artifacts/{artifactName}/{artifactVersion}" \
+        .format(client.base_url, projectKey=project_key, runKey=run_key, artifactName=artifact_name, artifactVersion=artifact_version)
+
+    headers: Dict[str, Any] = client.get_headers()
+
+    response = httpx.put(url=url, headers=headers)
+
+    assert_response_status(response)

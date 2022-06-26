@@ -1,12 +1,12 @@
 import io
 import cgi
-from typing import Any, Tuple, cast, Dict, Optional
+from typing import Any, Collection, Tuple, cast, Dict, Optional
 
 import httpx
 
 from ._api_commons import assert_response_status
 from ..client import Client
-from ..dto import ArtifactDto
+from ..dto import ArtifactDto, FileHashDto
 
 
 def create_model(*, client: Client, project_key: str, artifact_name: str, artifact_version: int) -> None:
@@ -42,11 +42,12 @@ def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto) 
     return ArtifactDto.from_dict(response.json())
 
 
-def upload_file(*, client: Client, project_key: str, artifact_name: str, artifact_version: int, filename: str, file: io.BytesIO):
+def upload_file(*, client: Client, project_key: str, artifact_name: str, artifact_version: int, filename: str, file_hash: str, file: io.BytesIO):
     url = "{}/projects/{projectKey}/artifacts/{artifactName}/{artifactVersion}/files"\
         .format(client.base_url, projectKey=project_key, artifactName=artifact_name, artifactVersion=artifact_version)
 
     headers: Dict[str, Any] = client.get_headers()
+    query_params = {'file-hash': file_hash}
 
     files = {'file': (filename, file)}
 
@@ -54,7 +55,8 @@ def upload_file(*, client: Client, project_key: str, artifact_name: str, artifac
         method="POST",
         url=url,
         headers=headers,
-        files=files
+        files=files,
+        params=query_params
     )
 
     assert_response_status(response)
@@ -110,3 +112,26 @@ def download_artifact(*,
     value, params = cgi.parse_header(content_disposition)
     filename = params.get("filename")
     return io.BytesIO(response.content), filename
+
+def find_artifact_by_file_hashes(*, client: Client,
+                                 project_key: str,
+                                 artifact_name: str,
+                                 files: Collection[FileHashDto]) -> ArtifactDto:
+    url = "{}/projects/{projectKey}/artifacts/{artifactName}/find-by-file-hashes" \
+        .format(client.base_url, projectKey=project_key, artifactName=artifact_name)
+
+    headers: Dict[str, Any] = client.get_headers()
+
+    response = httpx.request(
+        method="POST",
+        url=url,
+        headers=headers,
+        json=[file.to_dict_without_none_values() for file in files]
+    )
+    
+    assert_response_status(response, is_404_valid=True)
+
+    if response.status_code == 404:
+        return None
+
+    return ArtifactDto.from_dict(cast(Dict[str, Any], response.json()))

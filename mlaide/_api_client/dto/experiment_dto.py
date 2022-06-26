@@ -7,12 +7,6 @@ from typing import List, Optional
 from .helper import datetime_field, ExtendedDtoSerializer
 
 
-class ExperimentStatusDto(str, Enum):
-    TODO = "TODO"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
-
-
 @dataclass
 class ExperimentDto(ExtendedDtoSerializer, DataClassJsonMixin):
     dataclass_json_config = config(
@@ -23,5 +17,4 @@ class ExperimentDto(ExtendedDtoSerializer, DataClassJsonMixin):
     created_at: Optional[datetime] = datetime_field()
     key: Optional[str] = None
     name: Optional[str] = None
-    status: Optional[ExperimentStatusDto] = None
     tags: Optional[List[str]] = None

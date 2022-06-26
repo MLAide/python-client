@@ -85,14 +85,19 @@ def test_create_artifact_should_assert_status_code(client, httpx_mock, assert_re
 def test_upload_file_should_upload_the_file(client, httpx_mock):
     # arrange
     httpx_mock.add_response(method='POST',
-                            url='https://mlaide.com/projects/pk/artifacts/artifact name/28/files',
+                            url='https://mlaide.com/projects/pk/artifacts/artifact name/28/files?file-hash=111',
                             match_headers=client.get_headers(),
                             status_code=204)
     file = BytesIO(bytes('foobar', 'utf-8'))
 
     # act
-    artifact_api.upload_file(client=client, project_key='pk', artifact_name='artifact name',
-                             artifact_version=28, filename='my-file.txt', file=file)
+    artifact_api.upload_file(client=client, 
+                             project_key='pk',
+                             artifact_name='artifact name',
+                             artifact_version=28,
+                             filename='my-file.txt',
+                             file_hash='111',
+                             file=file)
 
     # assert
     request = httpx_mock.get_request()
@@ -102,18 +107,23 @@ def test_upload_file_should_upload_the_file(client, httpx_mock):
     assert body.find('foobar') != -1
 
 
-def test_upload_file_should_assert_status_code4(client, httpx_mock, assert_response_status_mock):
+def test_upload_file_should_assert_status_code500(client, httpx_mock, assert_response_status_mock):
     # arrange
     httpx_mock.add_response(method='POST',
-                            url='https://mlaide.com/projects/pk/artifacts/artifact name/28/files',
+                            url='https://mlaide.com/projects/pk/artifacts/artifact name/28/files?file-hash=123',
                             match_headers=client.get_headers(),
                             status_code=500,
                             json={'code': 500, 'message': 'error'})
     file = BytesIO(bytes('foobar', 'utf-8'))
 
     # act
-    artifact_api.upload_file(client=client, project_key='pk', artifact_name='artifact name',
-                             artifact_version=28, filename='my-file.txt', file=file)
+    artifact_api.upload_file(client=client,
+                             project_key='pk',
+                             artifact_name='artifact name',
+                             artifact_version=28,
+                             filename='my-file.txt',
+                             file_hash='123',
+                             file=file)
 
     # assert
     assert_response_status_mock.assert_called_once()

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
+from mlaide.active_experiment import ActiveExperiment
+
 from ._api_client import Client, AuthenticatedClient
-from .active_run import ActiveRun
 from .active_artifact import ActiveArtifact
-from .model import ArtifactRef, ModelStage
-from .git_resolver import get_git_metadata
+from .model import ModelStage
 
 
 @dataclass
@@ -72,36 +72,8 @@ class MLAideClient:
         self.__api_client = AuthenticatedClient(base_url=self.__options.server_url,
                                                 api_key=self.__options.api_key)
 
-    def start_new_run(self,
-                      experiment_key: str = None,
-                      run_name: str = None,
-                      used_artifacts: List[ArtifactRef] = None,
-                      auto_create_experiment: bool = True) -> ActiveRun:
-        """Creates and starts a new run, that will be assigned to the specified experiment. The run object can be used
-        to log all necessary information.
-
-        Arguments:
-            experiment_key: The key of the experiment, that the new run should be assigned to. If `None` a new, random
-                experiment will be created.
-            run_name: The name of the run. The name helps to identify the run for humans. If `None` a random name will
-                be used.
-            used_artifacts: An optional list of `ArtifactRef` that references artifacts, that are used as input for
-                this run. This information will help to create and visualize the experiment lineage.
-            auto_create_experiment: Specifies whether the experiment (see `experiment_key`) should be created if it
-                does not exist or not. If `auto_create_experiment` is `False` and the experiment does not exist an error
-                will be raised.
-
-        Returns:
-            This object encapsulates the newly created run and provides functions to log all information \
-            that belongs to the run.
-        """
-        return ActiveRun(api_client=self.__api_client,
-                         project_key=self.__project_key,
-                         run_name=run_name,
-                         git=get_git_metadata(),
-                         experiment_key=experiment_key,
-                         used_artifacts=used_artifacts,
-                         auto_create_experiment=auto_create_experiment)
+    def create_experiment(self, experiment_name: str):
+        return ActiveExperiment(api_client=self.__api_client, project_key=self.__project_key, experiment_name=experiment_name)
 
     def get_artifact(self, name: str, version: Optional[int] = None) -> ActiveArtifact:
         """Gets an existing artifact. The artifact is specified by its name and version. If no version

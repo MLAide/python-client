@@ -1,11 +1,18 @@
 import io
-from typing import Any, Callable, Union
+import os
+from typing import Any, Collection, Union
 import cloudpickle
 import tempfile
 from pathlib import Path
 
+from mlaide.model.artifact_file import ArtifactFile
 
-def serialize(model: Any, save_callback: Callable[[Union[str, io.BytesIO], str], None]):
+from mlaide.model import InMemoryArtifactFile, LocalArtifactFile
+
+
+def serialize(model: Any) -> Collection[Union[InMemoryArtifactFile, LocalArtifactFile]]:
+    files = []
+
     for class_obj in model.__class__.__mro__:
         module_name = class_obj.__module__
         if not module_name:
@@ -19,7 +26,7 @@ def serialize(model: Any, save_callback: Callable[[Union[str, io.BytesIO], str],
             cloudpickle.dump(model, buffer)
             buffer.seek(0)
 
-            save_callback(buffer, 'model.pkl')
+            files.append(InMemoryArtifactFile(file_name='model.pkl', file_content=buffer))
             break
         # elif module_name.startswith("xgboost"):
         #     model_type = "xgboost"
@@ -33,7 +40,9 @@ def serialize(model: Any, save_callback: Callable[[Union[str, io.BytesIO], str],
                 pathlist = tmpdir_path.rglob('*')
                 for path in pathlist:
                     if (path.is_file()):
-                        relative_path = str(path.relative_to(tmpdir_path))
-                        save_callback(str(path), relative_path)
+                        file_name = os.path.split(path.absolute())
+                        files.append(LocalArtifactFile(file_name=file_name, file_path=path))
 
             break
+
+    return files

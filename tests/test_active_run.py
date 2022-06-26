@@ -3,14 +3,18 @@ from datetime import datetime
 from os import path
 import pytest
 import io
+from mlaide._api_client.dto.file_hash_dto import FileHashDto
 
 from mlaide.active_run import \
-    ActiveRun, \
+    ActiveRun, get_file_hash, get_file_content, extract_filename, \
     ArtifactDto, Artifact, ArtifactRef, \
-    ExperimentDto, ExperimentStatusDto, \
+    Experiment, ExperimentDto, \
     Git, Run, RunDto, RunStatus, \
     StatusDto
 from mlaide.model import model
+from mlaide.model.in_memory_artifact_file import InMemoryArtifactFile
+from mlaide.model.local_artifact_file import LocalArtifactFile
+from mlaide.model.new_artifact import NewArtifact
 
 
 @pytest.fixture
@@ -47,11 +51,6 @@ def run_api_mock(mocker: MockerFixture):
 
 
 @pytest.fixture
-def experiment_api_mock(mocker: MockerFixture):
-    return mocker.patch('mlaide.active_run.experiment_api')
-
-
-@pytest.fixture
 def artifact_api_mock(mocker: MockerFixture):
     return mocker.patch('mlaide.active_run.artifact_api')
 
@@ -64,8 +63,12 @@ def create_run_mock(run_api_mock, mocker: MockerFixture):
 
 @pytest.fixture
 def active_run(client_mock, create_run_mock, run_to_dto_mock, dto_to_run_mock):
+    experiment = Experiment(name='my experiment')
     return ActiveRun(
-        client_mock.return_value, 'project key', 'run name', None, 'exp key', auto_create_experiment=False)
+        api_client=client_mock.return_value, 
+        project_key='project key', 
+        experiment=experiment,
+        run_name='run name')
 
 
 def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_mock, create_run_mock):
@@ -73,7 +76,7 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     created_run_dto = RunDto()
     create_run_mock.return_value = created_run_dto
 
-    used_artifact = [ArtifactRef('a name', 1)]
+    used_artifacts = [ArtifactRef('a name', 1)]
     git = Git(
         commit_time=datetime.now(),
         commit_hash='abc',
@@ -82,8 +85,12 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     )
 
     # act
-    active_run = ActiveRun(client_mock.return_value, 'project key',
-                           'run name', git, 'exp key', used_artifact, auto_create_experiment=False)
+    active_run = ActiveRun(api_client=client_mock.return_value,
+                           project_key='project key',
+                           run_name='run name',
+                           experiment=Experiment(key='exp key'),
+                           git=git,
+                           used_artifacts=used_artifacts)
 
     # assert
     assert active_run.run == dto_to_run_mock.return_value
@@ -96,86 +103,9 @@ def test_init_should_create_new_run(client_mock, run_to_dto_mock, dto_to_run_moc
     assert run_to_create.name == 'run name'
     assert run_to_create.git == git
 
-    run_to_dto_mock.assert_called_once_with(run_to_create, 'exp key', used_artifact)
+    run_to_dto_mock.assert_called_once_with(run_to_create, 'exp key', used_artifacts)
 
     dto_to_run_mock.assert_called_once_with(created_run_dto)
-
-
-def test_init_auto_create_experiment_is_true_and_experiment_key_is_none_should_not_create_new_experiment(
-        client_mock,
-        run_to_dto_mock,
-        dto_to_run_mock,
-        create_run_mock,
-        experiment_api_mock):
-    # arrange
-    created_run_dto = RunDto()
-    create_run_mock.return_value = created_run_dto
-
-    # act
-    ActiveRun(api_client=client_mock.return_value,
-              project_key='project key',
-              run_name='run name',
-              git=None,
-              experiment_key=None,
-              auto_create_experiment=True)
-
-    # assert
-    experiment_api_mock.get_experiment.assert_not_called()
-    experiment_api_mock.create_experiment.assert_not_called()
-
-
-def test_init_auto_create_experiment_is_true_and_specified_experiment_key_exists_should_not_create_new_experiment(
-        client_mock,
-        run_to_dto_mock,
-        dto_to_run_mock,
-        create_run_mock,
-        experiment_api_mock):
-    # arrange
-    created_run_dto = RunDto()
-    create_run_mock.return_value = created_run_dto
-    experiment_api_mock.get_experiment.return_value = ExperimentDto()
-
-    # act
-    ActiveRun(api_client=client_mock.return_value,
-              project_key='project key',
-              run_name='run name',
-              git=None,
-              experiment_key='exp key',
-              auto_create_experiment=True)
-
-    # assert
-    experiment_api_mock.get_experiment.assert_called_once_with(client=client_mock.return_value,
-                                                               project_key='project key', experiment_key='exp key')
-    experiment_api_mock.create_experiment.assert_not_called()
-
-
-def test_init_auto_create_experiment_is_true_and_specified_experiment_key_does_not_exist_should_create_new_experiment(
-        client_mock,
-        run_to_dto_mock,
-        dto_to_run_mock,
-        create_run_mock,
-        experiment_api_mock):
-    # arrange
-    created_run_dto = RunDto()
-    create_run_mock.return_value = created_run_dto
-    experiment_api_mock.get_experiment.return_value = None
-
-    expected_experiment_to_create = ExperimentDto(key='exp key', name='exp key', status=ExperimentStatusDto.IN_PROGRESS)
-
-    # act
-    ActiveRun(api_client=client_mock.return_value,
-              project_key='project key',
-              run_name='run name',
-              git=None,
-              experiment_key='exp key',
-              auto_create_experiment=True)
-
-    # assert
-    experiment_api_mock.get_experiment.assert_called_once_with(client=client_mock.return_value,
-                                                               project_key='project key', experiment_key='exp key')
-    experiment_api_mock.create_experiment.assert_called_once_with(client=client_mock.return_value,
-                                                                  project_key='project key',
-                                                                  experiment=expected_experiment_to_create)
 
 
 def test_log_metric_should_add_metric_to_run_and_call_update_on_api(active_run, client_mock, run_api_mock):
@@ -190,6 +120,7 @@ def test_log_metric_should_add_metric_to_run_and_call_update_on_api(active_run, 
                                                             project_key='project key',
                                                             run_key=active_run.run.key,
                                                             metrics={'the-key': 'the value'})
+
 
 def test_log_metric_epoch_should_add_epoch_metric_to_run_and_call_update_on_api(active_run, client_mock, run_api_mock):
     # arrange
@@ -249,15 +180,18 @@ def test_log_model_should_create_an_artifact_and_attach_the_serialized_model_as_
                                                                                      client_mock,
                                                                                      artifact_api_mock,
                                                                                      dto_to_artifact_mock,
+                                                                                     run_api_mock,
                                                                                      mocker: MockerFixture):
     # arrange
-    serialized_model = io.BytesIO(bytes('foo', 'utf-8'))
-
+    serialized_files = [InMemoryArtifactFile('model.pkl', io.BytesIO(bytes('foo', 'utf-8')))]
     model_serializer_mock = mocker.patch('mlaide.active_run._model_deser')
-    model_serializer_mock.serialize.return_value = serialized_model
+    model_serializer_mock.serialize.return_value = serialized_files
 
-    created_artifact_dto = ArtifactDto()
-    artifact_api_mock.create_artifact.return_value = created_artifact_dto
+    get_file_hash_mock = mocker.patch('mlaide.active_run.get_file_hash')
+    get_file_hash_mock.return_value = '123456'
+
+    created_artifact_dto = ArtifactDto(name='x', version=3)
+    artifact_api_mock.find_artifact_by_file_hashes.return_value = created_artifact_dto
 
     created_artifact = Artifact(name='a name', version=15)
     dto_to_artifact_mock.return_value = created_artifact
@@ -266,111 +200,120 @@ def test_log_model_should_create_an_artifact_and_attach_the_serialized_model_as_
     active_run.log_model('the model content', 'my-model', {'k': 'v'})
 
     # assert
-    expected_artifact_to_create = ArtifactDto(name='my-model', type='model', metadata={'k': 'v'}, run_key=47)
-    artifact_api_mock.create_artifact.assert_called_once_with(client=client_mock.return_value,
-                                                              project_key='project key',
-                                                              artifact=expected_artifact_to_create)
-    artifact_api_mock.create_model.assert_called_once_with(client=client_mock.return_value,
-                                                           project_key='project key',
-                                                           artifact_name='a name',
-                                                           artifact_version=15)
-
-    # assert that the save_callback that is passed to serialize() is working correctly
-    model_serializer_mock.serialize.assert_called_once()
-    serializer_save_callback = model_serializer_mock.serialize.call_args.args[1]
-    file_bytes = io.BytesIO(bytes('some content', 'utf-8'))
-    serializer_save_callback(file_bytes, 'file.txt')
-    artifact_api_mock.upload_file.assert_called_once_with(client=client_mock.return_value,
-                                                          project_key='project key',
-                                                          artifact_name='a name',
-                                                          artifact_version=15,
-                                                          filename='file.txt',
-                                                          file=file_bytes)
-
-    assert model_serializer_mock.serialize.call_args.args[0] == 'the model content'
+    artifact_api_mock.find_artifact_by_file_hashes.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='my-model',
+        files=['123456'])
+    run_api_mock.attach_artifact_to_run.assert_called_once_with(
+        client=client_mock.return_value,
+        artifact_name='x',
+        artifact_version=3,
+        project_key='project key',
+        run_key=47)
+    artifact_api_mock.create_model.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='a name',
+        artifact_version=15)
 
 
-def test_create_artifact_should_create_an_artifact(active_run,
-                                                   client_mock,
-                                                   artifact_api_mock,
-                                                   dto_to_artifact_mock):
+def test_add_artifact_should_create_an_artifact_with_files_from_memory_if_same_artifact_does_not_exist(
+    client_mock, 
+    active_run, 
+    artifact_api_mock,
+    dto_to_artifact_mock,
+    mocker: MockerFixture):
+
     # arrange
-    created_artifact_dto = ArtifactDto()
+    get_file_hash_mock = mocker.patch('mlaide.active_run.get_file_hash')
+    get_file_hash_mock.return_value = FileHashDto('data.txt', '123abc')
+
+    artifact_api_mock.find_artifact_by_file_hashes.return_value = None
+
+    created_artifact_dto = ArtifactDto(name='created artifact dto')
     artifact_api_mock.create_artifact.return_value = created_artifact_dto
 
-    created_artifact = Artifact(name='a name', version=15)
+    created_artifact = Artifact(name='created artifact', version=2)
+    dto_to_artifact_mock.return_value = created_artifact
+    
+    file_content = io.BytesIO(bytes('foo', 'utf-8'))
+    files = [InMemoryArtifactFile('data.txt', file_content)]
+    artifact = NewArtifact('my artifact', 'dataset', files)
+
+    # act
+    active_run.add_artifact(artifact)
+
+    # assert
+    artifact_api_mock.find_artifact_by_file_hashes.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='my artifact',
+        files=[FileHashDto('data.txt', '123abc')])
+    artifact_api_mock.create_artifact.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None, run_key=47))
+    artifact_api_mock.upload_file.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='created artifact',
+        artifact_version=2,
+        filename='data.txt',
+        file_hash='123abc',
+        file=file_content)
+
+
+def test_add_artifact_should_create_an_artifact_with_files_from_local_filesystem_if_same_artifact_does_not_exist(
+    client_mock, 
+    active_run, 
+    artifact_api_mock,
+    dto_to_artifact_mock,
+    mocker: MockerFixture):
+
+    # arrange
+    get_file_hash_mock = mocker.patch('mlaide.active_run.get_file_hash')
+    get_file_hash_mock.return_value = FileHashDto('data.txt', '123abc')
+
+    artifact_api_mock.find_artifact_by_file_hashes.return_value = None
+
+    created_artifact_dto = ArtifactDto(name='created artifact dto')
+    artifact_api_mock.create_artifact.return_value = created_artifact_dto
+
+    created_artifact = Artifact(name='created artifact', version=2)
     dto_to_artifact_mock.return_value = created_artifact
 
+    extract_filename_mock = mocker.patch('mlaide.active_run.extract_filename')
+    extract_filename_mock.return_value = 'data.txt'
+
+    file_content = io.BytesIO(bytes('foo', 'utf-8'))
+    get_file_content_mock = mocker.patch('mlaide.active_run.get_file_content')
+    get_file_content_mock.return_value = file_content
+    
+    files = [LocalArtifactFile('/current-working-directory/data.txt')]
+    artifact = NewArtifact('my artifact', 'dataset', files)
+
     # act
-    artifact = active_run.create_artifact('artifact name', 'the type', {'k': 'val'})
+    active_run.add_artifact(artifact)
 
     # assert
-    assert artifact == created_artifact
-    expected_artifact_to_create = ArtifactDto(name='artifact name', type='the type', metadata={'k': 'val'}, run_key=47)
-    artifact_api_mock.create_artifact.assert_called_once_with(client=client_mock.return_value,
-                                                              project_key='project key',
-                                                              artifact=expected_artifact_to_create)
-    dto_to_artifact_mock.assert_called_once_with(created_artifact_dto)
-
-
-def test_add_artifact_file_of_type_bytes_io_should_upload_a_file(active_run,
-                                                                 client_mock,
-                                                                 artifact_api_mock):
-    # arrange
-    file = io.BytesIO(bytes('foo', 'utf-8'))
-    artifact = Artifact(name='artifact name', version=23)
-
-    # act
-    active_run.add_artifact_file(artifact, file, 'my-file.txt')
-
-    # assert
-    artifact_api_mock.upload_file.assert_called_once_with(client=client_mock.return_value,
-                                                          project_key='project key',
-                                                          artifact_name='artifact name',
-                                                          artifact_version=23,
-                                                          filename='my-file.txt',
-                                                          file=file)
-
-
-def test_add_artifact_file_of_type_bytes_io_without_filename_should_raise_exception(active_run):
-    # arrange
-    file = io.BytesIO(bytes('foo', 'utf-8'))
-    artifact = Artifact(name='artifact name', version=23)
-
-    # act
-    with pytest.raises(Exception):
-        active_run.add_artifact_file(artifact, file, 'my-file.txt')
-
-
-def test_add_artifact_file_of_type_str_should_read_file_from_disc_and_upload_it(active_run,
-                                                                                client_mock,
-                                                                                artifact_api_mock,
-                                                                                mocker: MockerFixture):
-    # arrange
-    file_path = path.normpath('path/to/file.txt')
-    file_bytes = bytes('foo', 'utf-8')
-    file = io.BytesIO(file_bytes)
-    artifact = Artifact(name='artifact name', version=23)
-
-    path_mock = mocker.patch('mlaide.active_run.Path')
-    path_mock.return_value.is_file.return_value = True
-    path_mock.return_value.read_bytes.return_value = file_bytes
-
-    bytes_io_mock = mocker.patch('mlaide.active_run.BytesIO')
-    bytes_io_mock.return_value = file
-
-    # act
-    active_run.add_artifact_file(artifact, file_path)
-
-    # assert
-    artifact_api_mock.upload_file.assert_called_once_with(client=client_mock.return_value,
-                                                          project_key='project key',
-                                                          artifact_name='artifact name',
-                                                          artifact_version=23,
-                                                          filename=file_path,
-                                                          file=file)
-    path_mock.assert_called_once_with(file_path)
-    bytes_io_mock.assert_called_once_with(file_bytes)
+    artifact_api_mock.find_artifact_by_file_hashes.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='my artifact',
+        files=[FileHashDto('data.txt', '123abc')])
+    artifact_api_mock.create_artifact.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None, run_key=47))
+    artifact_api_mock.upload_file.assert_called_once_with(
+        client=client_mock.return_value,
+        project_key='project key',
+        artifact_name='created artifact',
+        artifact_version=2,
+        filename='data.txt',
+        file_hash='123abc',
+        file=file_content)
 
 
 def test_set_completed_status_should_set_status_and_end_time_in_run(active_run, mocker: MockerFixture):
@@ -441,3 +384,38 @@ def test_set_failed_status_should_invoke_run_api_with_new_status(active_run,
                                                             project_key='project key',
                                                             run_key=47,
                                                             run=RunDto(status=StatusDto.FAILED))
+
+
+def test_get_file_hash_should_return_file_hash_of_InMemoryArtifactFile(mocker: MockerFixture):
+    # arrange
+    file_content = io.BytesIO(bytes('aaa', 'utf-8'))
+    file = InMemoryArtifactFile('data.txt', file_content)
+    file_utils_mock = mocker.patch('mlaide.active_run._file_utils')
+    file_utils_mock.calculate_checksum_of_bytes.return_value = '1234'
+
+    # act
+    hash = get_file_hash(file)
+
+    # assert
+    assert hash is not None
+    assert hash.fileName == 'data.txt'
+    assert hash.fileHash == '1234'
+    file_utils_mock.calculate_checksum_of_bytes.assert_called_once_with(file_content)
+
+
+def test_get_file_hash_should_return_file_hash_of_LocalArtifactFile(mocker: MockerFixture):
+    # arrange
+    file = LocalArtifactFile('data.txt')
+    file_utils_mock = mocker.patch('mlaide.active_run._file_utils')
+    file_utils_mock.calculate_checksum_of_file.return_value = '1234'
+    getcwd_mock = mocker.patch('mlaide.active_run.getcwd')
+    getcwd_mock.return_value = '/path/to/file'
+
+    # act
+    hash = get_file_hash(file)
+
+    # assert
+    assert hash is not None
+    assert hash.fileName == 'data.txt'
+    assert hash.fileHash == '1234'
+    file_utils_mock.calculate_checksum_of_file.assert_called_once_with('/path/to/file/data.txt')

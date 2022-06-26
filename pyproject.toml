@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mlaide"
-version = "0.1.0-alpha.1"
+version = "0.3.0"
 description = ""
 authors = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
 maintainers = ["Raman Singh <mail.raman.s@gmail.com>", "Farruch Kouliev <farruch.kouliev@gmail.com>"]
@@ -31,6 +31,7 @@ scikit-learn = "^0.24.2"
 tensorflow = "^2.7.0"
 ipykernel = "^6.5.0"
 matplotlib = "^3.4.3"
+pytest-watch = "^4.2.0"
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}

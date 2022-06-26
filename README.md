@@ -26,33 +26,35 @@ or [Visual Studio Code](https://code.visualstudio.com/)
 
 ### Setup Environment
 1. Install environment and download dependencies
-    ```shell
+    ```bash
    poetry install
    ```
    
 2. Activate environment
-    ```shell
+    ```bash
     poetry shell
     ```
 
 ### Run Tests
-```
+```bash
+# run tests once
 pytest
-```
 
-### Run Tests with Coverage
-```
+# run tests in watch mode
+ptw
+
+# run tests and scan code coverage
 coverage run --branch --source mlaide -m pytest
 coverage html
 ```
 
 ### Build
-```
+```bash
 poetry build
 ```
 
 ### Publish (on PyPI)
-```
+```bash
 poetry publish
 ```
 

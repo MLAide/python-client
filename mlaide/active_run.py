@@ -1,15 +1,54 @@
-from . import _model_deser
+from mlaide._api_client.dto.file_hash_dto import FileHashDto
+from . import _model_deser, _file_utils
 from ._api_client import Client
-from ._api_client.api import run_api, artifact_api, experiment_api
-from ._api_client.dto import ArtifactDto, ExperimentDto, ExperimentStatusDto, RunDto, StatusDto
-from .model import Artifact, ArtifactRef, Git, Run, RunStatus
+from ._api_client.api import run_api, artifact_api
+from ._api_client.dto import ArtifactDto, ExperimentDto, RunDto, StatusDto
+from .model import Artifact, ArtifactRef, Git, Run, RunStatus, NewArtifact, InMemoryArtifactFile, LocalArtifactFile, Experiment
 from .mapper import dto_to_run, run_to_dto, dto_to_artifact
 
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from io import BytesIO
 from pathlib import Path
-from os.path import relpath
+from os import getcwd, path
+
+
+def get_file_hash(file: Union[InMemoryArtifactFile, LocalArtifactFile]) -> FileHashDto:
+    if isinstance(file, InMemoryArtifactFile):
+        return FileHashDto(file.file_name, _file_utils.calculate_checksum_of_bytes(file.file_content))
+    elif isinstance(file, LocalArtifactFile):
+        file_name = Path.joinpath(Path(getcwd()), file.file_name)
+        absolute_file_path = str(file_name.absolute())
+        file_hash = _file_utils.calculate_checksum_of_file(absolute_file_path)
+        return FileHashDto(extract_filename(file.file_name), file_hash)
+
+
+def extract_filename(file: Union[str, BytesIO]) -> str:
+    if isinstance(file, str):
+        return path.relpath(file)
+
+    raise Exception('filename must be provided if provided file is of type io.BytesIO')
+
+
+def get_file_content(file: Union[str, BytesIO]) -> BytesIO:
+    if isinstance(file, str):  # Read the file behind the string/path
+        if file.startswith('http://') or file.startswith('https://'):  # The file must be downloaded
+            pass
+            # TODO: Download file
+
+        else:  # The file must be read from filesystem
+            path = Path(file)
+
+            if path.is_file():  # check if it is only a single file
+                file_bytes = path.read_bytes()
+                return BytesIO(file_bytes)
+
+            elif path.is_dir():  # ... or is it a directory?
+                pass
+                # TODO: Read all files from directory
+
+    else:  # The passed file is already of type BytesIO
+        return file
 
 
 class ActiveRun(object):
@@ -22,18 +61,14 @@ class ActiveRun(object):
     def __init__(self,
                  api_client: Client,
                  project_key: str,
+                 experiment: Experiment,
                  run_name: str,
                  git: Optional[Git] = None,
-                 experiment_key: Optional[str] = None,
-                 used_artifacts: Optional[List[ArtifactRef]] = None,
-                 auto_create_experiment: bool = True):
+                 used_artifacts: Optional[List[ArtifactRef]] = None):
         self.__api_client = api_client
         self.__project_key = project_key
 
-        if auto_create_experiment and experiment_key is not None:
-            self.__create_experiment_if_not_present(project_key, experiment_key)
-
-        self.__run = self.__create_new_run(experiment_key, run_name, git, used_artifacts)
+        self.__run = self.__create_new_run(experiment.key, run_name, git, used_artifacts)
 
     def __create_new_run(self,
                          experiment_key: str,
@@ -50,15 +85,6 @@ class ActiveRun(object):
         )
 
         return dto_to_run(created_run)
-
-    def __create_experiment_if_not_present(self, project_key: str, experiment_key: str):
-        experiment = experiment_api.get_experiment(client=self.__api_client,
-                                                   project_key=project_key,
-                                                   experiment_key=experiment_key)
-
-        if experiment is None:
-            experiment = ExperimentDto(key=experiment_key, name=experiment_key, status=ExperimentStatusDto.IN_PROGRESS)
-            experiment_api.create_experiment(client=self.__api_client, project_key=project_key, experiment=experiment)
 
     @property
     def run(self) -> Run:
@@ -109,7 +135,6 @@ class ActiveRun(object):
             metrics={key: self.__run.metrics[key]})
         return self.__run
 
-
     def log_parameter(self, key: str, value) -> Run:
         """Logs a parameter
 
@@ -133,11 +158,15 @@ class ActiveRun(object):
             model_name: The name of the model. The name will be used as artifact filename.
             metadata: Some optional metadata that will be attached to the artifact.
         """
-        artifact = self.create_artifact(name=model_name, artifact_type='model', metadata=metadata)
+        files = _model_deser.serialize(model)
 
-        _model_deser.serialize(
-            model, 
-            lambda serialized_model, filename: self.add_artifact_file(artifact=artifact, file=serialized_model, filename=filename))
+        new_artifact = NewArtifact(
+            name=model_name,
+            type='model',
+            metadata=metadata,
+            files=files
+        )
+        artifact = self.add_artifact(new_artifact)
 
         artifact_api.create_model(
             client=self.__api_client,
@@ -145,7 +174,53 @@ class ActiveRun(object):
             artifact_name=artifact.name,
             artifact_version=artifact.version)
 
-    def create_artifact(self, name: str, artifact_type: str, metadata: Optional[Dict[str, str]]) -> Artifact:
+    def add_artifact(self, artifact: NewArtifact) -> Artifact:
+        """Adds an artifact to the current run. If an artifact with the same name and the same files
+        is already existing in another experiment the existing artifact will be reference. Thus, uploading
+        the files of this artifact won't be necessary. If the artifact does not exist, it will be created
+        and all files of the artifact will be uploaded.
+
+        Arguments:
+            artifact: The artifact should be created or referenced.
+        """
+        files_with_file_hashes = [(file, get_file_hash(file)) for file in artifact.files]
+        file_hashes = [file_with_hash[1] for file_with_hash in files_with_file_hashes]
+        
+        # check if an artifact with these files already exists (in any other experiment)
+        artifact_dto: ArtifactDto = artifact_api.find_artifact_by_file_hashes(
+            client=self.__api_client,
+            project_key=self.__project_key,
+            artifact_name=artifact.name,
+            files=file_hashes)
+
+        if artifact_dto is None:
+            # artifact does not exist, yet - create artifact and upload all files of the artifact
+            new_artifact = self.__create_artifact(artifact.name, artifact.type, artifact.metadata)
+            for file_with_hash in files_with_file_hashes:
+                file = file_with_hash[0]
+                file_hash = file_with_hash[1]
+                if isinstance(file, InMemoryArtifactFile):
+                    self.__add_artifact_file(new_artifact, file_hash.fileHash, file.file_content, file.file_name)
+                elif isinstance(file, LocalArtifactFile):
+                    self.__add_artifact_file(new_artifact, file_hash.fileHash, file.file_name)
+
+            return new_artifact
+
+        else:
+            # TODO: Merge artifact metadata into the existing metadata of the artifact
+
+            # an artifact with the same content already exists - just link artifact to this run
+            run_api.attach_artifact_to_run(
+                client=self.__api_client,
+                artifact_name=artifact_dto.name,
+                artifact_version=artifact_dto.version,
+                project_key=self.__project_key,
+                run_key=self.__run.key
+            )
+
+            return dto_to_artifact(artifact_dto)
+
+    def __create_artifact(self, name: str, artifact_type: str, metadata: Optional[Dict[str, str]]) -> Artifact:
         """Creates a new artifact. If an artifact with the same name already exists, a new artifact with the
         next available version number will be registered.
 
@@ -163,7 +238,7 @@ class ActiveRun(object):
 
         return dto_to_artifact(artifact_dto)
 
-    def add_artifact_file(self, artifact: Artifact, file: Union[str, BytesIO], filename: str = None):
+    def __add_artifact_file(self, artifact: Artifact, file_hash: str, file: Union[str, BytesIO], filename: str = None):
         """Add a file to an existing artifact. To add multiple file, specify a directory or invoke this function
         multiple times.
 
@@ -178,36 +253,9 @@ class ActiveRun(object):
             project_key=self.__project_key,
             artifact_name=artifact.name,
             artifact_version=artifact.version,
-            filename=filename if filename is not None else ActiveRun.__extract_filename(file),
-            file=ActiveRun.__normalize_file(file))
-
-    @staticmethod
-    def __extract_filename(file: Union[str, BytesIO]) -> str:
-        if isinstance(file, str):
-            return relpath(file)
-
-        raise Exception('filename must be provided if provided file is of type io.BytesIO')
-
-    @staticmethod
-    def __normalize_file(file: Union[str, BytesIO]) -> BytesIO:
-        if isinstance(file, str):  # Read the file behind the string/path
-            if file.startswith('http://') or file.startswith('https://'):  # The file must be downloaded
-                pass
-                # TODO: Download file
-
-            else:  # The file must be read from filesystem
-                path = Path(file)
-
-                if path.is_file():  # check if it is only a single file
-                    file_bytes = path.read_bytes()
-                    return BytesIO(file_bytes)
-
-                elif path.is_dir():  # ... or is it a directory?
-                    pass
-                    # TODO: Read all files from directory
-
-        else:  # The passed file is already of type BytesIO
-            return file
+            filename=filename if filename is not None else extract_filename(file),
+            file_hash=file_hash,
+            file=get_file_content(file))
 
     def set_completed_status(self) -> Run:
         """Sets the status of the current run as completed."""

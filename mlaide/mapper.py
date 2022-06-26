@@ -1,4 +1,5 @@
-from .model import Artifact, ArtifactRef, Git, Run, RunStatus
+from mlaide._api_client.dto.experiment_dto import ExperimentDto
+from .model import Artifact, ArtifactRef, Git, Run, RunStatus, Experiment
 from ._api_client.dto import ArtifactDto, ArtifactRefDto, GitDto, ExperimentRefDto, RunDto, StatusDto
 
 from typing import List, Optional
@@ -19,6 +20,13 @@ def dto_to_artifact(artifact_dto: ArtifactDto) -> Artifact:
         version=artifact_dto.version,
     )
 
+def dto_to_experiment(experiment_dto: ExperimentDto) -> Experiment:
+    return Experiment(
+        created_at=experiment_dto.created_at,
+        key=experiment_dto.key,
+        name=experiment_dto.name,
+        tags=experiment_dto.tags
+    )
 
 def run_to_dto(run: Run, experiment_key: Optional[str], used_artifacts: Optional[List[ArtifactRef]]) -> RunDto:
     return RunDto(
