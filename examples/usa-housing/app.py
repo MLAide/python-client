@@ -16,7 +16,7 @@ def main():
     # create connection
     api_key = os.getenv('API_KEY')
     options = ConnectionOptions(
-        server_url='http://test.mlaide.com:8881/api/v1',
+        server_url='http://localhost:9000/api/v1',
         api_key=api_key
     )
     mlaide_client = MLAideClient(project_key='house-pricing', options=options)
@@ -38,7 +38,7 @@ def main():
     run_data_preparation.set_completed_status()
 
     # create run with an reference to the dataset artifact
-    artifact_ref = ArtifactRef(name="USA housing dataset", version=1)
+    artifact_ref = ArtifactRef(name='USA housing dataset')
     run_pipeline_setup = experiment.start_new_run(run_name='pipeline setup',
                                                   used_artifacts=[artifact_ref])
 
