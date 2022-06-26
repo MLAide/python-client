@@ -5,5 +5,5 @@ from typing import Union
 @dataclass
 class ArtifactRef(object):
     name: str
-    version: Union[int, str, None] = None
+    version: Union[int, None] = None
 
