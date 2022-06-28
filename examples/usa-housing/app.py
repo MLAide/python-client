@@ -19,7 +19,7 @@ def main():
         server_url='http://localhost:9000/api/v1',
         api_key=api_key
     )
-    mlaide_client = MLAideClient(project_key='house-pricing', options=options)
+    mlaide_client = MLAideClient(project_key='us-housing', options=options)
 
     # create a new experiment
     experiment = mlaide_client.create_experiment('linear-regression')
@@ -28,10 +28,10 @@ def main():
     run_data_preparation = experiment.start_new_run(run_name='data preparation')
 
     # read data
-    housing_data = pd.read_csv('examples/usa-housing/data/housing.csv')
+    housing_data = pd.read_csv('data/housing.csv')
 
     # add dataset as artifact
-    artifact = NewArtifact(name='USA housing dataset', type='dataset', files=[LocalArtifactFile('examples/usa-housing/data/housing.csv')])
+    artifact = NewArtifact(name='USA housing dataset', type='dataset', files=[LocalArtifactFile('data/housing.csv')])
     run_data_preparation.add_artifact(artifact)
 
     # complete the run
@@ -46,8 +46,8 @@ def main():
                       'Avg. Area Number of Bedrooms', 'Area Population']]
     y = housing_data['Price']
 
-    test_size=0.2
-    random_state=42
+    test_size=0.3
+    random_state=50
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
