@@ -24,9 +24,9 @@ def create_model(*, client: Client, project_key: str, artifact_name: str, artifa
     assert_response_status(response)
 
 
-def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto) -> ArtifactDto:
-    url = "{}/projects/{projectKey}/artifacts"\
-        .format(client.base_url, projectKey=project_key)
+def create_artifact(*, client: Client, project_key: str, artifact: ArtifactDto, run_key: int) -> ArtifactDto:
+    url = "{}/projects/{projectKey}/artifacts?run-key={runKey}"\
+        .format(client.base_url, projectKey=project_key, runKey=run_key)
 
     headers: Dict[str, Any] = client.get_headers()
 

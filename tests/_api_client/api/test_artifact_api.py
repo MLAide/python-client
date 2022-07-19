@@ -51,14 +51,14 @@ def test_create_model_should_assert_status_code(client, httpx_mock, assert_respo
 def test_create_artifact_should_create_new_artifact(client, httpx_mock):
     # arrange
     httpx_mock.add_response(method='POST',
-                            url='https://mlaide.com/projects/pk/artifacts',
+                            url='https://mlaide.com/projects/pk/artifacts?run-key=2',
                             match_headers=client.get_headers(),
                             match_content=b'{"name": "artifact name"}',
                             json={'name': 'saved'})
     artifact = artifact_api.ArtifactDto(name='artifact name')
 
     # act
-    created_artifact = artifact_api.create_artifact(client=client, project_key='pk', artifact=artifact)
+    created_artifact = artifact_api.create_artifact(client=client, project_key='pk', artifact=artifact, run_key=2)
 
     # assert
     assert httpx_mock.get_request() is not None
@@ -68,7 +68,7 @@ def test_create_artifact_should_create_new_artifact(client, httpx_mock):
 def test_create_artifact_should_assert_status_code(client, httpx_mock, assert_response_status_mock):
     # arrange
     httpx_mock.add_response(method='POST',
-                            url='https://mlaide.com/projects/pk/artifacts',
+                            url='https://mlaide.com/projects/pk/artifacts?run-key=3',
                             match_headers=client.get_headers(),
                             match_content=b'{"name": "artifact name"}',
                             status_code=500,
@@ -76,7 +76,7 @@ def test_create_artifact_should_assert_status_code(client, httpx_mock, assert_re
     artifact = artifact_api.ArtifactDto(name='artifact name')
 
     # act
-    artifact_api.create_artifact(client=client, project_key='pk', artifact=artifact)
+    artifact_api.create_artifact(client=client, project_key='pk', artifact=artifact, run_key=3)
 
     # assert
     assert_response_status_mock.assert_called_once()
