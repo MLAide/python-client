@@ -45,8 +45,6 @@ class ArtifactDto(ExtendedDtoSerializer, DataClassJsonMixin):
     metadata: Optional[Dict[str, str]] = None
     model: Optional[ModelDto] = None
     name: Optional[str] = None
-    run_key: Optional[int] = None
-    run_name: Optional[str] = None
     type: Optional[str] = None
     updated_at: Optional[datetime] = datetime_field()
     version: Optional[int] = None

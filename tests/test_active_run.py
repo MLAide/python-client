@@ -219,8 +219,8 @@ def test_log_model_should_create_an_artifact_and_attach_the_serialized_model_as_
 
 
 def test_add_artifact_should_create_an_artifact_with_files_from_memory_if_same_artifact_does_not_exist(
-    client_mock, 
-    active_run, 
+    client_mock,
+    active_run: ActiveRun,
     artifact_api_mock,
     dto_to_artifact_mock,
     mocker: MockerFixture):
@@ -253,7 +253,8 @@ def test_add_artifact_should_create_an_artifact_with_files_from_memory_if_same_a
     artifact_api_mock.create_artifact.assert_called_once_with(
         client=client_mock.return_value,
         project_key='project key',
-        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None, run_key=47))
+        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None),
+        run_key=47)
     artifact_api_mock.upload_file.assert_called_once_with(
         client=client_mock.return_value,
         project_key='project key',
@@ -266,7 +267,7 @@ def test_add_artifact_should_create_an_artifact_with_files_from_memory_if_same_a
 
 def test_add_artifact_should_create_an_artifact_with_files_from_local_filesystem_if_same_artifact_does_not_exist(
     client_mock, 
-    active_run, 
+    active_run: ActiveRun, 
     artifact_api_mock,
     dto_to_artifact_mock,
     mocker: MockerFixture):
@@ -305,7 +306,8 @@ def test_add_artifact_should_create_an_artifact_with_files_from_local_filesystem
     artifact_api_mock.create_artifact.assert_called_once_with(
         client=client_mock.return_value,
         project_key='project key',
-        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None, run_key=47))
+        artifact=ArtifactDto(name='my artifact', type='dataset', metadata=None),
+        run_key=47)
     artifact_api_mock.upload_file.assert_called_once_with(
         client=client_mock.return_value,
         project_key='project key',

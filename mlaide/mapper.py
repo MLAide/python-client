@@ -13,8 +13,6 @@ def dto_to_artifact(artifact_dto: ArtifactDto) -> Artifact:
         metadata=artifact_dto.metadata,
         model=artifact_dto.model,
         name=artifact_dto.name,
-        run_key=artifact_dto.run_key,
-        run_name=artifact_dto.run_name,
         type=artifact_dto.type,
         updated_at=artifact_dto.updated_at,
         version=artifact_dto.version,

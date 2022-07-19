@@ -176,7 +176,7 @@ class ActiveRun(object):
 
     def add_artifact(self, artifact: NewArtifact) -> Artifact:
         """Adds an artifact to the current run. If an artifact with the same name and the same files
-        is already existing in another experiment the existing artifact will be reference. Thus, uploading
+        is already existing in another experiment the existing artifact will be referenced. Thus, uploading
         the files of this artifact won't be necessary. If the artifact does not exist, it will be created
         and all files of the artifact will be uploaded.
 
@@ -229,12 +229,13 @@ class ActiveRun(object):
             artifact_type: The artifact type.
             metadata: Some optional metadata that will be attached to the artifact.
         """
-        artifact_dto = ArtifactDto(name=name, type=artifact_type, metadata=metadata, run_key=self.__run.key)
+        artifact_dto = ArtifactDto(name=name, type=artifact_type, metadata=metadata)
 
         artifact_dto = artifact_api.create_artifact(
             client=self.__api_client,
             project_key=self.__project_key,
-            artifact=artifact_dto)
+            artifact=artifact_dto,
+            run_key=self.__run.key)
 
         return dto_to_artifact(artifact_dto)
 
