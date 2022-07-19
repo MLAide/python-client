@@ -66,8 +66,8 @@ def main():
     run_pipeline_setup.set_completed_status()
 
     # Linear Regression
-    dataset_artifact_ref = ArtifactRef(name="USA housing dataset", version=1)
-    pipeline_artifact_ref = ArtifactRef(name="pipeline", version=1)
+    dataset_artifact_ref = ArtifactRef(name="USA housing dataset")
+    pipeline_artifact_ref = ArtifactRef(name="pipeline")
     run_linear_regression = experiment.start_new_run(run_name='linear regression',
                                                      used_artifacts=[dataset_artifact_ref, pipeline_artifact_ref])
 
